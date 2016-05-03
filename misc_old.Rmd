@@ -1,0 +1,113 @@
+---
+title: "swiftkey"
+author: "Sebastien Plat"
+output: html_document
+---
+
+```{r}
+install.packages("wordnet")
+setDict("C:\\Users\\sebastien\\Documents\\R\\WNdb-3.0\\dict")
+library(wordnet)
+```
+
+```{r}
+source("./tokenizer.R")
+s <- paste(c("Pierre Vinken, 61 years old, will join the board as a ",
+             "nonexecutive director Nov. 29.\n",
+             "Mr. Vinken is chairman of Elsevier N.V., ",
+             "the Dutch publishing group."),
+           collapse = "")
+
+tokenize(s)
+require(RWeka)
+NGramTokenizer(s, Weka_control(min=1,max=1))
+
+``` 
+
+```{r}
+#I'm can't it's that's you're don't
+NGramTokenizer("it's fucked", Weka_control(min=1,max=1, delimiters=' \r\n\t.,;:"()?!'))
+
+``` 
+
+
+```{r}
+# unique words frequency of frequency
+G1pFF <- data.frame(table(G1pF[,2]))
+G1pFF <- arrange(G1pFF, desc(Freq))
+str(G1pFF)
+head(G1pFF,10)
+
+barplot(table(G1pF[,2]))
+
+# check 'words' with special characters
+G1tocheck <- grep("([^a-zA-Z#])+", G1pF[,1], perl = TRUE, value=TRUE)
+G1tocheck
+
+# lots of hashtags; continue w/o hashtags
+G1tocheck <- grep("--", G1pF[,1], perl = TRUE, value=TRUE)
+G1tocheck
+
+G1tocheck <- grep("([&])+", G1pF[,1], perl = TRUE, value=TRUE)
+G1tocheck
+
+# 
+G1tocheck <- grepl("'[^(s|S|t|T|ll|LL|d|D|m|M|ve|VE|re|RE)]", G1pF[,1], perl = TRUE)
+G1tocheck <- G1pF[G1tocheck, ]
+head(G1tocheck,50)
+sum(G1tocheck[,2])
+head(arrange(G1tocheck, desc(Freq)))
+
+# save freqs
+saveRDS(G1pF, file="./data/twitterUS_G1'F.rds")
+saveRDS(G1pFF, file="./data/twitterUS_G1'FF.rds")
+```
+
+### Bigram count & frequency
+```{r}
+# bigrams count
+length(G2p)
+
+# unique bigrams count & frequency
+G2pF <- data.frame(table(G2p))
+G2pF <- arrange(G2pF, desc(Freq))
+str(G2pF)
+head(G2pF,50)
+
+# unique bigrams frequency of frequency
+G2pFF <- data.frame(table(G2pF[,2]))
+G2pFF <- arrange(G2pFF, desc(Freq))
+str(G2pFF)
+head(G2pFF,10)
+
+barplot(table(G2F[,2]))
+
+# save freqs
+saveRDS(G2pF, file="./data/twitterUS_G2'F.rds")
+saveRDS(G2pFF, file="./data/twitterUS_G2'FF.rds")
+```
+
+### Trigram count & frequency
+```{r}
+# trigrams count
+length(G3p)
+
+# unique bigrams count & frequency
+G3pF <- data.frame(table(G3p))
+G3pF <- arrange(G3pF, desc(Freq))
+str(G3pF)
+head(G3pF,10)
+
+# unique bigrams frequency of frequency
+G3pFF <- data.frame(table(G3pF[,2]))
+G3pFF <- arrange(G3pFF, desc(Freq))
+str(G3pFF)
+head(G3pFF,10)
+
+barplot(table(G3pF[,2]))
+
+# save freqs
+saveRDS(G3pF, file="./data/twitterUS_G3F.rds")
+saveRDS(G3pFF, file="./data/twitterUS_G3FF.rds")
+```
+

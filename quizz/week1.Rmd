@@ -1,0 +1,60 @@
+---
+title: "swiftkey"
+author: "Sebastien Plat"
+output: html_document
+---
+
+```{r}
+setwd('D:\\datascienceCapstone')
+file <- 'data\\en_US\\en_US.twitter.txt'
+#x <- scan(file, what = "character") 
+# read.table('data\\en_US\\en_US.twitter.txt', header = FALSE)
+res <- readLines(file, encoding="UTF-8") # fileEncoding=
+length(res)
+``` 
+
+```{r}
+file1 <- 'data\\en_US\\en_US.blogs.txt'
+res1 <- readLines(file1)
+lres1 <- sapply(res1, nchar)
+max(lres1) #40835
+
+file2 <- 'data\\en_US\\en_US.news.txt'
+res2 <- readLines(file2)
+lres2 <- sapply(res2, nchar)
+max(lres2) #5760
+
+file3 <- 'data\\en_US\\en_US.twitter.txt'
+res3 <- readLines(file3)
+lres3 <- sapply(res3, nchar)
+max(lres3) #213
+``` 
+
+```{r}
+file <- 'data\\en_US\\en_US.twitter.txt'
+res <- readLines(file) # fileEncoding=
+
+matchLove <- grepl('love', res)
+length(which(matchLove)) #90956
+
+matchHate <- grepl('hate', res)
+length(which(matchHate)) #22138
+
+length(which(matchLove))/length(which(matchHate))
+``` 
+
+```{r}
+file <- 'data\\en_US\\en_US.twitter.txt'
+res <- readLines(file) # fileEncoding=
+
+res[grep('biostats', res)]
+``` 
+
+```{r}
+file <- 'data\\en_US\\en_US.twitter.txt'
+res <- readLines(file) # fileEncoding=
+
+match <- grepl('A computer once beat me at chess, but it was no match for me at kickboxing', res)
+length(which(match)) #3
+``` 
+

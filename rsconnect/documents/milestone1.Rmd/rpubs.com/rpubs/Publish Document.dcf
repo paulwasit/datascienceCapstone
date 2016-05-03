@@ -1,0 +1,7 @@
+name: Publish Document
+account: rpubs
+server: rpubs.com
+bundleId:
+        https://api.rpubs.com/api/v1/document/177595/833cbbcc7d894537b4fdca1b4175546b
+url: http://rpubs.com/paulwasit/177595
+when: 1462152656.17068

@@ -1,0 +1,46 @@
+---
+title: "swiftkey"
+author: "Sebastien Plat"
+output: html_document
+---
+
+```{r}
+setwd('D:\\datascienceCapstone')
+library(dplyr)
+library(Rcpp)
+```
+
+
+### build a 10% sample 
+
+```{r}
+# sampling - 15 sec
+source('./helpers/sampler.R')
+createSample("en_US", c("blogs","news","twitter"), 10)
+``` 
+
+
+### Fast tokenization & unique word list
+
+```{r}
+# fast tokenization - 10sec
+source('./helpers/tokenizer.R') # custom split: remove ', add =<>~*&_/\ plus numbers
+src <- "./data/en_US.news.sample10.txt"
+G1_list <- tokenize(src, 1, TRUE)
+rm(src,tokenize)
+```
+
+
+### Replace unknown words (from qdap dictionary)
+
+```{r}
+ptm <- proc.time()
+source('./helpers/wordChecker.R')
+wordChecked <- wordCheck(G1_list)
+G1_list <- wordChecked[[1]]
+unk_freq <- wordChecked[[2]]
+proc.time() - ptm
+```
+
+
+

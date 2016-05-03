@@ -1,0 +1,15 @@
+# OS
+# ===========
+
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+
+*.Rhistory
+*.RData
+
+# Quizz & Data
+# ============
+data/
+

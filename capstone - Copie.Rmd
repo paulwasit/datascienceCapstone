@@ -1,0 +1,433 @@
+---
+title: "swiftkey"
+author: "Sebastien Plat"
+output: html_document
+---
+
+```{r}
+setwd('D:\\datascienceCapstone')
+install.packages("RWeka") # tokenization in N-grams
+install.packages("qdap")  # spelling check
+require(dplyr)
+```
+
+
+### build a 10% sample 
+
+```{r}
+# sampling - 15 sec
+source('./helpers/sampleCleaner.R')
+sampleCleaner("en_US", "blogs", 1)
+``` 
+
+
+### Fast tokenization & unique word list
+
+```{r}
+# fast tokenization - 10sec
+source('./helpers/fastTokenizer.R') # custom split: remove ', add =<>~*&_/\ plus numbers
+ptm <- proc.time()
+src <- "./data/en_US.blogs.sample10.txt"
+dest <- "./data/newsUS_sample" # '_Gx.Rds' is appended to the file name
+G1_list <- fastTokenize(src, dest, 1, 'full')
+proc.time() - ptm
+rm(src,dest,fastTokenize)
+length(G1_list)
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+G1_freq <- data.frame(table(G1_list))
+G1_freq <- arrange(G1_freq, desc(Freq))
+proc.time() - ptm
+
+
+# remove non-words
+G1r <- grepl("â", G1_freq[,1])
+length(G1r)
+head(G1_freq[G1r==TRUE, ], 10)
+sum(G1_freq[G1r==TRUE, 2])
+length(G1_freq[G1r==TRUE, 2])
+
+G1_freq <- G1_freq[G1r==TRUE, ]
+rm(G1r)
+``` 
+
+
+### Replace unknown words (from qdap dictionary)
+
+```{r}
+require(qdap)
+source('./helpers/dictLister.R')
+
+# build dict list from qdap dictionary - 1sec
+dict <- qdapDictionaries::GradyAugmented
+dictList <- createDictList(dict) # split the dict in a list of 26 elements
+
+# filter unique words not in the qdap dictionary - 25sec
+ptm <- proc.time()
+wordList <- as.character(G1_freq[,1])
+unknownWords <- getUnknownWords(wordList, dictList)
+proc.time() - ptm
+
+# show top unknown words
+G1_freq_unknownWords <- G1_freq[unknownWords == TRUE, ]
+saveRDS(G1_freq_unknownWords, "./data/twitter_unknownFreq.Rds")
+head(G1_freq_unknownWords, 20)
+sum(G1_freq_unknownWords[1:1000,2])
+
+# identify positions of unknown words in the tokenized sample - 600sec
+ptm <- proc.time()
+unknownDictList <- createDictList(as.character(G1_freq_unknownWords[, 1]))
+unknownTokens <- getUnknownWords(G1_list, unknownDictList, TRUE)
+proc.time() - ptm
+
+# replace all unkwnon tokens by "<UNK>"
+G1_list[unknownTokens == TRUE] <- "<UNK>"
+head(G1_list,100)
+G1_freq <- data.frame(table(G1_list))
+G1_freq <- arrange(G1_freq, desc(Freq))
+head(G1_freq)
+rm (createDictList, getUnknownWords, dict, dictList, wordList, unknownWords, unknownDictList, unknownTokens)
+
+ptm <- proc.time()
+text <- paste(gsub("eol#","\n",G1_list), collapse=" ")
+text <- gsub(" \n "," \n", text)   
+writeLines(text, "./data/twitterUS_sampleClean.txt")
+proc.time() - ptm
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+### build a 10% sample 
+
+```{r}
+# sampling - 15 sec
+source('./helpers/sampler.R')
+ptm <- proc.time()
+sample("./data/en_US/en_US.blogs.txt", "./data/blogUS_sample.txt", 10)
+proc.time() - ptm
+rm(sample)
+``` 
+
+
+### Fast tokenization & unique word list
+
+```{r}
+# fast tokenization - 10sec
+source('./helpers/fastTokenizer.R') # custom split: remove ', add =<>~*&_/\ plus numbers
+ptm <- proc.time()
+src <- "./data/blogUS_sample.txt"
+dest <- "./data/blogUS_sample" # '_Gx.Rds' is appended to the file name
+G1_list <- fastTokenize(src, dest, 1, 'full')
+proc.time() - ptm
+rm(src,dest,fastTokenize)
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+G1_freq <- data.frame(table(G1_list))
+G1_freq <- arrange(G1_freq, desc(Freq))
+proc.time() - ptm
+
+# remove non-words
+G1r <- grepl("^[^a-z0-9]+$", G1_freq[,1])
+G1_freq <- G1_freq[G1r==FALSE, ]
+rm(G1r)
+``` 
+
+
+### Replace unknown words (from qdap dictionary)
+
+```{r}
+require(qdap)
+source('./helpers/dictLister.R')
+
+# build dict list from qdap dictionary - 1sec
+dict <- qdapDictionaries::GradyAugmented
+dictList <- createDictList(dict) # split the dict in a list of 26 elements
+
+# filter unique words not in the qdap dictionary - 25sec
+ptm <- proc.time()
+wordList <- as.character(G1_freq[,1])
+unknownWords <- getUnknownWords(wordList, dictList)
+proc.time() - ptm
+
+# show top unknown words
+G1_freq_unknownWords <- G1_freq[unknownWords == TRUE, ]
+saveRDS(G1_freq_unknownWords, "./data/blog_unknownFreq.Rds")
+head(G1_freq_unknownWords, 20)
+sum(G1_freq_unknownWords[1:1000,2])
+
+# identify positions of unknown words in the tokenized sample - 600sec
+ptm <- proc.time()
+unknownDictList <- createDictList(as.character(G1_freq_unknownWords[, 1]))
+unknownTokens <- getUnknownWords(G1_list, unknownDictList, TRUE)
+proc.time() - ptm
+
+# replace all unkwnon tokens by "<UNK>"
+G1_list[unknownTokens == TRUE] <- "<UNK>"
+head(G1_list,100)
+G1_freq <- data.frame(table(G1_list))
+G1_freq <- arrange(G1_freq, desc(Freq))
+head(G1_freq)
+rm (createDictList, getUnknownWords, dict, dictList, wordList, unknownWords, unknownDictList, unknownTokens)
+
+ptm <- proc.time()
+text <- paste(gsub("eol#","\n",G1_list), collapse=" ")
+text <- gsub(" \n "," \n", text)   
+writeLines(text, "./data/blogUS_sampleClean.txt")
+proc.time() - ptm
+  
+```
+
+
+
+
+
+
+
+
+### Fast tokenization & unique word list
+
+```{r}
+# fast tokenization - 10sec
+source('./helpers/fastTokenizer.R') # custom split: remove ', add =<>~*&_/\ plus numbers
+ptm <- proc.time()
+src <- "./data/en_US/en_US.news.txt"
+dest <- "./data/newsUS" # '_Gx.Rds' is appended to the file name
+G1_list <- fastTokenize(src, dest, 1, 'full')
+proc.time() - ptm
+rm(src,dest,fastTokenize)
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+G1_freq <- data.frame(table(G1_list))
+G1_freq <- arrange(G1_freq, desc(Freq))
+proc.time() - ptm
+
+# remove non-words
+G1r <- grepl("^[^a-z0-9]+$", G1_freq[,1])
+G1_freq <- G1_freq[G1r==FALSE, ]
+rm(G1r)
+``` 
+
+
+### Replace unknown words (from qdap dictionary)
+
+```{r}
+require(qdap)
+source('./helpers/dictLister.R')
+
+# build dict list from qdap dictionary - 1sec
+dict <- qdapDictionaries::GradyAugmented
+dictList <- createDictList(dict) # split the dict in a list of 26 elements
+
+# filter unique words not in the qdap dictionary - 25sec
+ptm <- proc.time()
+wordList <- as.character(G1_freq[,1])
+unknownWords <- getUnknownWords(wordList, dictList)
+proc.time() - ptm
+
+# show top unknown words
+G1_freq_unknownWords <- G1_freq[unknownWords == TRUE, ]
+saveRDS(G1_freq_unknownWords, "./data/news_unknownFreq.Rds")
+head(G1_freq_unknownWords, 20)
+sum(G1_freq_unknownWords[1:1000,2])
+
+# identify positions of unknown words in the tokenized sample - 600sec
+ptm <- proc.time()
+unknownDictList <- createDictList(as.character(G1_freq_unknownWords[, 1]))
+unknownTokens <- getUnknownWords(G1_list, unknownDictList, TRUE)
+proc.time() - ptm
+
+# replace all unkwnon tokens by "<UNK>"
+G1_list[unknownTokens == TRUE] <- "<UNK>"
+head(G1_list,100)
+G1_freq <- data.frame(table(G1_list))
+G1_freq <- arrange(G1_freq, desc(Freq))
+head(G1_freq)
+rm (createDictList, getUnknownWords, dict, dictList, wordList, unknownWords, unknownDictList, unknownTokens)
+
+ptm <- proc.time()
+text <- paste(gsub("eol#","\n",G1_list), collapse=" ")
+text <- gsub(" \n "," \n", text)   
+writeLines(text, "./data/newsUS_clean.txt")
+proc.time() - ptm
+  
+```
+
+
+
+
+
+
+### Fast tokenization & unique word list
+
+```{r}
+# fast tokenization - 10sec
+source('./helpers/fastTokenizer.R') # custom split: remove ', add =<>~*&_/\ plus numbers
+src <- "./data/full/full.txt"
+dest <- "./data/full_sample" # '_Gx.Rds' is appended to the file name
+``` 
+
+```{r}
+ptm <- proc.time()
+G1_list <- fastTokenize(src, dest, 1, 'full')
+proc.time() - ptm
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+G1_freq <- data.frame(table(G1_list))
+G1_freq <- arrange(G1_freq, desc(Freq))
+proc.time() - ptm
+``` 
+
+```{r}
+ptm <- proc.time()
+G2_list <- fastTokenize(src, dest, 2, 'full')
+proc.time() - ptm
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+G2_freq <- data.frame(table(G2_list))
+G2_freq <- arrange(G2_freq, desc(Freq))
+proc.time() - ptm
+``` 
+
+```{r}
+ptm <- proc.time()
+G3_list <- fastTokenize(src, dest, 3, 'full')
+proc.time() - ptm
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+G3_freq <- data.frame(table(G3_list))
+G3_freq <- arrange(G3_freq, desc(Freq))
+proc.time() - ptm
+``` 
+
+```{r}
+ptm <- proc.time()
+G4_list <- fastTokenize(src, dest, 4, 'full')
+proc.time() - ptm
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+G4_freq <- data.frame(table(G4_list))
+G4_freq <- arrange(G4_freq, desc(Freq))
+proc.time() - ptm
+``` 
+
+
+
+
+### Fast tokenization & unique word list
+
+```{r}
+# fast tokenization - 10sec
+source('./helpers/fastTokenizer.R') # custom split: remove ', add =<>~*&_/\ plus numbers
+src <- "./data/full/fullClean.txt"
+dest <- "./data/fullClean_sample" # '_Gx.Rds' is appended to the file name
+``` 
+
+```{r}
+ptm <- proc.time()
+GOK1_list <- fastTokenize(src, dest, 1, 'full')
+proc.time() - ptm
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+GOK1_freq <- data.frame(table(GOK1_list))
+GOK1_freq <- arrange(GOK1_freq, desc(Freq))
+proc.time() - ptm
+``` 
+
+```{r}
+ptm <- proc.time()
+GOK2_list <- fastTokenize(src, dest, 2, 'full')
+proc.time() - ptm
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+GOK2_freq <- data.frame(table(GOK2_list))
+GOK2_freq <- arrange(GOK2_freq, desc(Freq))
+proc.time() - ptm
+``` 
+
+```{r}
+ptm <- proc.time()
+GOK3_list <- fastTokenize(src, dest, 3, 'full')
+proc.time() - ptm
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+GOK3_freq <- data.frame(table(GOK3_list))
+GOK3_freq <- arrange(GOK3_freq, desc(Freq))
+proc.time() - ptm
+``` 
+
+```{r}
+ptm <- proc.time()
+GOK4_list <- fastTokenize(src, dest, 4, 'full')
+proc.time() - ptm
+
+# unique words frequency - 5sec
+ptm <- proc.time()
+GOK4_freq <- data.frame(table(GOK4_list))
+GOK4_freq <- arrange(GOK4_freq, desc(Freq))
+proc.time() - ptm
+
+
+filter <- grepl("^make me the ",GOK4_freq[,1])
+head(GOK4_freq[filter==TRUE,],10)
+
+filter <- grepl("^on my ",GOK3_freq[,1])
+head(GOK3_freq[filter==TRUE,],10)
+
+head(GOK4_freq[grep("[^(unk)]",GOK4_freq),],10)
+``` 
+
+
+
+### frequency of frequencies
+
+```{r}
+GOK4_freq_freq <- data.frame(table(GOK4_freq[,2]))
+cat <- sapply(GOK4_freq_freq[,1], function(x) {
+  y <- as.numeric(x)
+  if (y == 1) {
+    return ("1")
+  }
+  else if (y <= 10) {
+    return ("<=10")
+  }
+  else if (y <= 100) {
+    return ("<=100")
+  }
+  else {
+    return (">100")
+  }
+})
+GOK4_freq_freq[, "cat"] <- cat
+GOK4_freq_freq <- group_by(GOK4_freq_freq, cat) %>% summarize (Freq = sum(Freq))
+
+
+
+GOK1_freq_freq
+GOK2_freq_freq
+GOK3_freq_freq
+GOK4_freq_freq
+
+sum(GOK1_freq_freq[,2])
+sum(GOK2_freq_freq[,2])
+sum(GOK3_freq_freq[,2])
+sum(GOK4_freq_freq[,2])
+```
