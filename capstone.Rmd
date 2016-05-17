@@ -1,46 +1,66 @@
----
-title: "swiftkey"
-author: "Sebastien Plat"
-output: html_document
----
+
+### parameters
 
 ```{r}
 setwd('D:\\datascienceCapstone')
 library(dplyr)
-library(Rcpp)
+
+# sample size
+lang <- "en_US"
+sampleSize <- 1
+minOccurences <- 10
 ```
 
-
-### build a 10% sample 
-
-```{r}
-# sampling - 15 sec
-source('./helpers/sampler.R')
-createSample("en_US", c("blogs","news","twitter"), 10)
-``` 
-
-
-### Fast tokenization & unique word list
+### sample operations: sampling + sentences tokenization + unigrams
 
 ```{r}
-# fast tokenization - 10sec
-source('./helpers/tokenizer.R') # custom split: remove ', add =<>~*&_/\ plus numbers
-src <- "./data/en_US.news.sample10.txt"
-G1_list <- tokenize(src, 1, TRUE)
-rm(src,tokenize)
+source('./helpers/sampleUnigramsCreator.R')
+createSampleUnigrams(lang, sampleSize, minOccurences)
+rm(createSampleUnigrams,createSample,tokenizeSent,
+   sent_token_annotator,tokenize,cleanUnigrams,filterUnigrams,createIndex)
 ```
 
-
-### Replace unknown words (from qdap dictionary)
+### frequency tables
 
 ```{r}
+G1_list <- readRDS(paste0("./data/",lang,".fullSample",sampleSize,".G1clean.Rds"))
+G1_freq <- G1_list %>% 
+           group_by(ngram) %>% summarize(freq = n()) %>% arrange(desc(freq)) %>%
+           filter(!ngram %in% c('eol#')) %>%
+           transform(ngram = as.character(ngram))
+
+source('./helpers/ngramFrequencer.R')
+G3_freq <- getFrequencies(G1_list,ngram=3,minOccurences=10)
+
+?slice
+
+test <- G3_freq$c2 != 'eol#'
+
+test <- G3_freq[,]
+str(G3_freq)
+?Position
 ptm <- proc.time()
-source('./helpers/wordChecker.R')
-wordChecked <- wordCheck(G1_list)
-G1_list <- wordChecked[[1]]
-unk_freq <- wordChecked[[2]]
-proc.time() - ptm
+fullText <- data.frame()
+len <- nrow(G3_freq)
+for (i in 0:64) {
+  print(i)
+  beg <- i*100000+1
+  end <- min((i+1)*100000, len)
+  G3_temp <- G3_freq[beg:end,]
+  fullText <- bind_rows(fullText,G3_temp)
+}
+print(proc.time() - ptm)
+
+ptm <- proc.time()
+
+print(proc.time() - ptm)
+
+G2_freq <- getFrequencies(G1_list,ngram=2,minOccurences=10)
+
+?table
+test <- table(G2_freq)
+head(test)
+rm(getFrequencies)
+
 ```
-
-
 

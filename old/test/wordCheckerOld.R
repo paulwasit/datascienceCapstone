@@ -1,12 +1,18 @@
 
 
-wordCheck <- function (nGramList) {
+
+wordCheckOld <- function (nGramList) {
+  
+  print('----- Check words -----')
+  
+  ptm <- proc.time()
   
   print("removing non words")
   nGramIndex <- createIndex(nGramList)
   good <- nGramIndex %>% filter(grepl("[a-z0-9]",word))
-  nGramList <- nGramList[unlist(good[,2])]
-  
+  good <- sort(unlist(good[,2]))
+  nGramList <- nGramList[good]
+
   print("identifying years")
   nGramIndex <- createIndex(nGramList)
   years <- nGramIndex %>% filter(grepl("^(19|20)[0-9]{2}$",word))
@@ -16,8 +22,10 @@ wordCheck <- function (nGramList) {
   nGramIndex <- createIndex(nGramList)
   numbers <- nGramIndex %>% filter(grepl("^[0-9]+$",word))
   nGramList[unlist(numbers[,2])] <- "<number>"
-  
+
   print("identifying unknown words")
+  nGramIndex <- createIndex(nGramList)
+  
   library(qdap)
   dict <- qdapDictionaries::GradyAugmented
   dict <- c(dict, 
@@ -25,16 +33,20 @@ wordCheck <- function (nGramList) {
             "online", "email", "emails", "internet", "london", "blogs",
             "facebook", "obama", "favourite", "blogging", "europe", "chicago", "england", "blogger", "bloggers",
             "boyfriend", "girlfriend", "awareness", "los", "angeles", "usa", "santa")
-  
+  ?qdapDictionaries
   test <- filter(nGramIndex, !(word %in% dict))
   test <- unlist(test[,2])
-  
+    
   unkFreq <- data.frame(table(nGramList[test]))
   unkFreq <- arrange(unkFreq, desc(Freq))
   
   nGramList[test] <- "<unk>"
-  return (list(nGramList, unkFreq))
   
+  ptm <- proc.time() - ptm
+  print (paste("total-",round(ptm[3],2)))
+  
+  return (list(nGramList, unkFreq))
+  #return(list(nGramList, c("unk")))
 }
 
 createIndex <- function (nGramList) {

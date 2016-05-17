@@ -1,0 +1,230 @@
+---
+title: "swiftkey"
+author: "Sebastien Plat"
+output: html_document
+---
+
+```{r}
+setwd('D:\\datascienceCapstone')
+library(dplyr)
+
+# sample size
+lang <- "en_US"
+sampleSize <- 10
+
+# sampling - fullSample.txt
+source('./helpers/sampler.R')
+createSample(lang, c("blogs","news","twitter"), sampleSize)
+
+# sentence tokenization - .sent.txt (15sec/10k lines)
+source('./helpers/sentSplitter.R')
+tokenizeSent(paste0("./data/",lang,".fullSample",sampleSize,".txt"))
+rm(tokenizeSent,sent_token_annotator)
+
+# first tokenization (40sec/1M lines)
+source('./helpers/tokenizer.R') # custom split: remove ', add =<>~*&_/\ plus numbers
+G1_list <- tokenize(paste0("./data/",lang,".fullSample",sampleSize,".sent.txt"), 1, TRUE)
+rm(tokenize)
+
+# Replace unknown words (from qdap dictionary) (120sec / 10M words)
+source('./helpers/wordChecker.R')
+#wordChecked <- wordCheck(G1_list)
+#G1_list <- wordChecked[[1]]
+#unk_freq <- wordChecked[[2]]
+G1_list2 <- wordCheck(G1_list)
+G1_freq <- arrange(data.frame(table(G1_list2)),desc(Freq))
+head(G1_freq)
+test <- filter(G1_freq, Freq<5)
+sum(test[,2])
+rm(wordCheck, createIndex)
+
+# Rebuild full text
+print('----- Rebuild full text -----')
+ptm <- proc.time()
+G1_list <- gsub("eol#", "\n", G1_list)
+fullText <- paste(G1_list,collapse=" ")
+write(fullText, paste0("./data/",lang,".fullSample",sampleSize,".ready.txt"), sep = "\t")
+ptm <- proc.time() - ptm
+print (paste("total-",round(ptm[3],2)))
+```
+
+
+### Clean numbers & am/pm
+
+```{r}
+ptm <- proc.time()
+#src <- "./data/en_US.fullSample10.ready.txt"
+src <- "./data/en_US.fullSample10.readyFull.txt"
+dest <- "./data/en_US.fullSample10.readyFull2.txt"
+
+fullText <- character(length = 0)
+i <- 0
+  
+con <- file(src, "rb")
+
+while(TRUE) {
+    
+  # prepare chunk for tokenization
+  chunk <- readLines(con, 10000)
+  if ( length(chunk) == 0 ) break
+  token <- gsub("(<number> )+<number>", "<number>", chunk)
+  token <- gsub("<number> a m", "<number> am", token)
+  token <- gsub("<number> p m", "<number> pm", token)
+  fullText <- c(fullText, token)
+  i <- i+1
+  print(i)
+  
+}
+close(con)
+
+write(fullText, dest, sep = "\t")
+proc.time() - ptm
+```
+
+### Get N-grams
+
+```{r}
+ptm <- proc.time()
+source('./helpers/tokenizer.R')
+#src <- "./data/en_US.fullSample10.ready2.txt"
+src <- "./data/en_US.fullSample10.readyFull2.txt"
+
+G1_list <- tokenize(src, 1)
+G1_freq <- arrange(data.frame(table(G1_list)), desc(Freq))
+length(G1_list)
+#head(G1_freq, 20)
+
+G2_list <- tokenize(src, 2)
+G2_freq <- arrange(data.frame(table(G2_list)), desc(Freq))
+length(G2_list)
+#head(G2_freq, 20)
+
+G3_list <- tokenize(src, 3)
+G3_freq <- arrange(data.frame(table(G3_list)), desc(Freq))
+length(G3_list)
+#head(G3_freq, 20)
+
+G4_list <- tokenize(src, 4)
+G4_freq <- arrange(data.frame(table(G4_list)), desc(Freq))
+length(G4_list)
+#head(G4_freq, 200)
+
+# clean values
+rm(src,tokenize, G1_list, G2_list, G3_list, G4_list)
+
+# rename columns
+names(G1_freq) <- c('list','freq')
+names(G2_freq) <- c('list','freq')
+names(G3_freq) <- c('list','freq')
+names(G4_freq) <- c('list','freq')
+
+# same ngrams
+#saveRDS(G1_freq, "./data/Rds/G1_freqF.Rds")
+#saveRDS(G2_freq, "./data/Rds/G2_freqF.Rds")
+#saveRDS(G3_freq, "./data/Rds/G3_freqF.Rds")
+#saveRDS(G4_freq, "./data/Rds/G4_freqF.Rds")
+
+saveRDS(G1_freq, "./data/Rds/G1_freqFull.Rds")
+saveRDS(G2_freq, "./data/Rds/G2_freqFull.Rds")
+saveRDS(G3_freq, "./data/Rds/G3_freqFull.Rds")
+saveRDS(G4_freq, "./data/Rds/G4_freqFull.Rds")
+
+proc.time() - ptm
+```
+
+### Simplify N-grams
+
+```{r}
+
+# read freq files
+G1_freq <- readRDS("./data/Rds/G1_freq.Rds")
+G2_freq <- readRDS("./data/Rds/G2_freq.Rds")
+G3_freq <- readRDS("./data/Rds/G3_freq.Rds")
+G4_freq <- readRDS("./data/Rds/G4_freq.Rds")
+
+#G1_freq <- readRDS("./data/Rds/G1_freqFull.Rds")
+#G2_freq <- readRDS("./data/Rds/G2_freqFull.Rds")
+#G3_freq <- readRDS("./data/Rds/G3_freqFull.Rds")
+#G4_freq <- readRDS("./data/Rds/G4_freqFull.Rds")
+
+# filter 
+filterPipe <- function (freqList) {
+  freqList %>% 
+  filter(!grepl("<unk>",list)) %>% 
+  filter(freq > 1) %>% 
+  transform(list = as.character(list))
+} 
+
+# list of df for easier manipulation
+Gfreq <- list (
+  "1" = filterPipe(G1_freq),
+  "2" = filterPipe(G2_freq),
+  "3" = filterPipe(G3_freq),
+  "4" = filterPipe(G4_freq)
+)
+
+rm(G1_freq,G2_freq,G3_freq,G4_freq,filterPipe)
+```
+
+# first quizz
+
+```{r}
+source('./helpers/stupidBackoff.R')
+
+stupidBackoff("a case of", c("beer","cheese","soda","pretzels")) 
+stupidBackoff("would mean the", c("most","universe","world","best"))
+stupidBackoff("make me the", c("bluest","saddest","smelliest","happiest"))
+stupidBackoff("struggling but the", c("defense","players","referees","crowd"))
+stupidBackoff("date at the", c("mall","beach","movies","grocery"))
+stupidBackoff("be on my", c("horse","phone","motorcycle","way"))
+stupidBackoff("in quite some", c("thing","weeks","time","years"))
+stupidBackoff("with his little", c("toes","eyes","ears","fingers"))
+stupidBackoff("faith during the", c("bad","hard","worse","sad"))
+stupidBackoff("you must be", c("asleep","callous","insane","insensitive"))
+
+# 1 O- beer
+# 2 O- world
+# 3 O- happiest
+# 4 O- defense
+# 5 O- beach
+# 6 O- way
+# 7 O- time
+# 8 O- fingers
+# 9 O- bad
+#10 O- insane
+
+```
+
+
+# second quizz
+
+```{r}
+
+stupidBackoff("live and I'd", c("die","eat","sleep","give")) 
+stupidBackoff("me about his", c("marital","spiritual","financial","horticultural"))
+stupidBackoff("arctic monkeys this", c("morning","decade","month","weekend"))
+stupidBackoff("helps reduce your", c("happiness","sleepiness","stress","hunger"))
+stupidBackoff("to take a", c("look","walk","minute","picture"))
+stupidBackoff("to settle the", c("case","account","incident","matter"))
+stupidBackoff("groceries in each", c("toe","hand","arm","finger"))
+stupidBackoff("bottom to the", c("center","top","middle","side"))
+stupidBackoff("bruises from playing", c("inside","daily","outside","weekly"))
+stupidBackoff("of Adam Sandler's", c("movies","stories","novels","pictures"))
+
+test <- Gfreq[[as.character("3")]] %>% 
+            filter(grepl("^about his", list))
+
+test
+
+# 1 X- give => O- die
+# 2 X- financial => X- spiritual => O- marital
+# 3 X- morning => O- weekend
+# 4 X- happiness => O- stress
+# 5 X- look => O- picture
+# 6 X- case => O- matter
+# 7 O- hand
+# 8 O- top
+# 9 O- outside
+#10 X- stories => O- pictures
+
+```

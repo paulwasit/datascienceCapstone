@@ -17,10 +17,14 @@ while(TRUE) {
   if ( length(chunk) == 0 ) break
   chunk <- as.String(chunk)
   
+  # split chunk's sentences
   a1 <- annotate(chunk, sent_token_annotator)
   token <- chunk[a1]
   
+  # append split chunk to full text
   fullText <- c(fullText, token)
+  
+  # display progress
   i <- i+1
   if (i %% 10 == 0) {
     ptm1 <- proc.time() - ptm1

@@ -5,8 +5,13 @@ library(RWeka)
 # our tokenize function
 tokenize <- function (conPath, ngram, keepEOL=FALSE) {
   
+  print('----- Tokenize ngrams -----')
+  
   fullText <- character(length = 0)
   i <- 0
+  
+  ptm <- proc.time()
+  ptm1 <- proc.time()
   
   con <- file(conPath, "rb")
   while(TRUE) {
@@ -27,10 +32,15 @@ tokenize <- function (conPath, ngram, keepEOL=FALSE) {
     )
     fullText <- c(fullText, token)
     i <- i+1
-    print(i)
+    ptm1 <- proc.time() - ptm1
+    print (paste(i,"-",round(ptm1[3],2)))
+    ptm1 <- proc.time()
     
   }
   close(con)
+  
+  ptm <- proc.time() - ptm
+  print (paste("total-",round(ptm[3],2)))
   
   return(fullText)
 
