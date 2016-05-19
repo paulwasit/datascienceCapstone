@@ -25,7 +25,18 @@ createSampleUnigrams <- function (lang, sampleSize, minOccurences=10) {
   # remove rare unigrams
   source('./helpers/sampleUnigramsCreator/unigramFilter.R')
   G1_list <- filterUnigrams(G1_list, minOccurences)
-
+  
+  # save clean txt
+  G1_text <- G1_list
+  levels(G1_text[,1]) <- c(levels(G1_text[,1]), "\n")
+  
+  G1_eol <- G1_text[,1] == "eol#"
+  G1_text[G1_eol==TRUE,1] <- "\n"
+  G1_text <- as.character(G1_text[,1])
+  G1_text <- paste(G1_text,collapse=" ")
+  write(G1_text, paste0("./data/",lang,".fullSample",sampleSize,".sent.clean.txt"), sep = "\t")
+  
+  # save G1 list
   saveRDS(G1_list,paste0("./data/",lang,".fullSample",sampleSize,".G1clean.Rds"))
   
   ptm <- proc.time() - ptm
