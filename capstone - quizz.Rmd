@@ -169,18 +169,18 @@ rm(G1_freq,G2_freq,G3_freq,G4_freq,filterPipe)
 # first quizz
 
 ```{r}
-source('./helpers/stupidBackoff.R')
+source('./helpers/stupidBackoffNew.R')
 
-stupidBackoff("a case of", c("beer","cheese","soda","pretzels")) 
-stupidBackoff("would mean the", c("most","universe","world","best"))
-stupidBackoff("make me the", c("bluest","saddest","smelliest","happiest"))
-stupidBackoff("struggling but the", c("defense","players","referees","crowd"))
-stupidBackoff("date at the", c("mall","beach","movies","grocery"))
-stupidBackoff("be on my", c("horse","phone","motorcycle","way"))
-stupidBackoff("in quite some", c("thing","weeks","time","years"))
-stupidBackoff("with his little", c("toes","eyes","ears","fingers"))
-stupidBackoff("faith during the", c("bad","hard","worse","sad"))
-stupidBackoff("you must be", c("asleep","callous","insane","insensitive"))
+stupidBackoff(nGramFreq, "a case of", c("beer","cheese","soda","pretzels")) 
+stupidBackoff(nGramFreq, "would mean the", c("most","universe","world","best"))
+stupidBackoff(nGramFreq, "make me the", c("bluest","saddest","smelliest","happiest"))
+stupidBackoff(nGramFreq, "struggling but the", c("defense","players","referees","crowd"))
+stupidBackoff(nGramFreq, "date at the", c("mall","beach","movies","grocery"))
+stupidBackoff(nGramFreq, "be on my", c("horse","phone","motorcycle","way"))
+stupidBackoff(nGramFreq, "in quite some", c("thing","weeks","time","years"))
+stupidBackoff(nGramFreq, "with his little", c("toes","eyes","ears","fingers"))
+stupidBackoff(nGramFreq, "faith during the", c("bad","hard","worse","sad"))
+stupidBackoff(nGramFreq, "you must be", c("asleep","callous","insane","insensitive"))
 
 # 1 O- beer
 # 2 O- world
@@ -200,16 +200,16 @@ stupidBackoff("you must be", c("asleep","callous","insane","insensitive"))
 
 ```{r}
 
-stupidBackoff("live and I'd", c("die","eat","sleep","give")) 
-stupidBackoff("me about his", c("marital","spiritual","financial","horticultural"))
-stupidBackoff("arctic monkeys this", c("morning","decade","month","weekend"))
-stupidBackoff("helps reduce your", c("happiness","sleepiness","stress","hunger"))
-stupidBackoff("to take a", c("look","walk","minute","picture"))
-stupidBackoff("to settle the", c("case","account","incident","matter"))
-stupidBackoff("groceries in each", c("toe","hand","arm","finger"))
-stupidBackoff("bottom to the", c("center","top","middle","side"))
-stupidBackoff("bruises from playing", c("inside","daily","outside","weekly"))
-stupidBackoff("of Adam Sandler's", c("movies","stories","novels","pictures"))
+stupidBackoff(nGramFreq, "live and I'd", c("die","eat","sleep","give")) 
+stupidBackoff(nGramFreq, "me about his", c("marital","spiritual","financial","horticultural"))
+stupidBackoff(nGramFreq, "arctic monkeys this", c("morning","decade","month","weekend"))
+stupidBackoff(nGramFreq, "helps reduce your", c("happiness","sleepiness","stress","hunger"))
+stupidBackoff(nGramFreq, "to take a", c("look","walk","minute","picture"))
+stupidBackoff(nGramFreq, "to settle the", c("case","account","incident","matter"))
+stupidBackoff(nGramFreq, "groceries in each", c("toe","hand","arm","finger"))
+stupidBackoff(nGramFreq, "bottom to the", c("center","top","middle","side"))
+stupidBackoff(nGramFreq, "bruises from playing", c("inside","daily","outside","weekly"))
+stupidBackoff(nGramFreq, "of Adam Sandler's", c("movies","stories","novels","pictures"))
 
 test <- Gfreq[[as.character("3")]] %>% 
             filter(grepl("^about his", list))

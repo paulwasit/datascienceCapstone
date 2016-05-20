@@ -1,132 +1,93 @@
 
-getFrequencies <- function (G1_list,ngram=2,minOccurences=10) {
+getFrequencies <- function (previousFull,G1_list,ngram=2,minOccurences=10) {
   
-  ptm2 <- proc.time()
-  
+  #-----
   print("----- building ngram list -----")
   ptm1 <- proc.time()
+  print("build list");ptm<-proc.time()
+  #-----
   
-  print("aggregate G1_list")
-  ptm <- proc.time()
+  previousFreq <- previousFull[["ngramFreq"]] %>% select(-score)
+  previousList <- previousFull[["previousList"]]
   
-  n <- list()
-  len <- nrow(G1_list)
-  for (i in 1:(ngram-1)) {
-    k <- len - ngram + i
-    n[[i]] <- G1_list[i:k,,drop=FALSE]
-      #filter(G1_list, between(row_number(), i, n()-k))
+  nGramListFilter <- G1_list[,1] != "eol#" & G1_list[,1] != "<unk>"
+  
+  # logical vector; TRUE for ngrams where (n-1)grams are ok & new words are neither eol# nor <unk>
+  if (ngram==2) {
+    nGramListFilter <- nGramListFilter[-nrow(previousList)] & nGramListFilter[-(1:(ngram-1))]
   }
-  m <- G1_list[ngram:len,,drop=FALSE]
-  #t <- as.integer(ngram)
-  #m <- filter(G1_list, between(row_number(), t, n()))
+  else {
+    previousListFilter <- previousFull[["previousListFilter"]]
+    nGramListFilter <- previousListFilter[-nrow(previousList)] & nGramListFilter[-(1:(ngram-1))]
+  }
   
-  nGramList <- bind_cols(n)
-  nGramList$newCol <- do.call(paste,nGramList)
-  nGramList <- nGramList[,ngram]
-  nGramList <- bind_cols(nGramList, m)
-  names(nGramList) <- c("c1","c2")
-  ptm <- proc.time() - ptm
-  print(paste("done in", round(ptm[3],2)))
+  # drop first/last items (prepare to combine)
+  previousList <- previousList[-nrow(previousList),,drop=FALSE]
+  G1_list <- G1_list[-(1:(ngram-1)),,drop=FALSE]
   
-  print("ngram list as factors")
-  ptm <- proc.time()
-  nGramList$c1 <- as.factor(nGramList$c1)
-  ptm <- proc.time() - ptm
-  print(paste("done in", round(ptm[3],2)))
+  # combine previous & new
+  nGramList <- bind_cols(previousList,G1_list)
+  nGramList$pos <- as.numeric(row(nGramList[,1]))
+  names(nGramList) <- c("c1","c2","pos")
   
-  print("cleaning eol#")
-  ptm <- proc.time()
-  nGramList <- nGramList %>% 
-               filter(c1 != "eol#") %>% 
-               filter(c1 != "<unk>") %>% 
-               filter(c2 != "eol#") %>% 
-               filter(c2 != "<unk>")
+  #-----
+  print(paste(">", round((proc.time() - ptm)[3],2)))
+  print("get ngram freq");ptm<-proc.time()
+  #-----
   
-  ptm <- proc.time() - ptm
-  print(paste("done in", round(ptm[3],2)))
+  # get freq & positions
+  nGramListFreq <- nGramList %>% filter (nGramListFilter) %>% 
+                   group_by(c1,c2) %>% summarize(freq=n(),pos=list(pos))
   
-  ptm1 <- proc.time() - ptm1
-  print(paste("=> done in", round(ptm1[3],2)))
-  return(nGramList)
+  nGramListFreqGood <- nGramListFreq %>% filter (freq > minOccurences)
   
+  # identify position of ok ngrams
+  nGramListGoodIndex <- as.numeric(unlist(nGramListFreqGood$pos))
+  nGramListFilter <- rep(FALSE,length(nGramListFilter))
+  nGramListFilter[nGramListGoodIndex] <- TRUE
   
-
-  print("----- filtering n gram list -----")
-  ptm1 <- proc.time()
+  # cleanup freq table
+  nGramListFreqGood <- data.frame(nGramListFreqGood %>% select(-pos)) %>% arrange(desc(freq))
+  nGramListFreqGood <- droplevels(nGramListFreqGood)
   
-  print("grouping")
-  ptm <- proc.time()
+  #-----
+  print(paste(">", round((proc.time() - ptm)[3],2)))
+  print("build aggregated table");ptm<-proc.time()
+  #-----
   
-  nGramFreq <- group_by(nGramList,c1,c2) %>% summarize(count=n())
-  nGramFreq$pos <- as.numeric(row(nGramFreq[,1]))
+  # combine previous & new for next level ngrams
+  nGramAggregate <- data.frame("c1"=rep("<unk>",length(nGramListFilter)),stringsAsFactors = FALSE)
+  c1 <- nGramList[nGramListGoodIndex,1]
+  c2 <- nGramList[nGramListGoodIndex,2]
+  c3 <- bind_cols(c1,c2)
+  c3$newCol <- do.call(paste,c3)
+  c3 <- c3[,3]
+  nGramAggregate[nGramListGoodIndex,1] <- c3
+  nGramAggregate[,1] <- as.factor(nGramAggregate[,1])
   
-  ptm <- proc.time() - ptm
-  print(paste("done in", round(ptm[3],2)))
+  #-----
+  print(paste(">", round((proc.time() - ptm)[3],2)))
+  print("add (n-1)gram freq & calculate score");ptm<-proc.time()
+  #-----
   
-  print("identifying rare occurences")
-  ptm <- proc.time()
+  # prep (n-1)gram freq list
+  if (ngram > 2) {
+    previousFreq$ngram <- paste(previousFreq$c1,previousFreq$c2)
+    previousFreq <- select(previousFreq,ngram,freq)
+  }
+  names(previousFreq) <- c("c1","freq1")
   
-  nGramFreqBad <- (nGramFreq %>% filter(count <= minOccurences))[,4][[1]]
-  nGramFreq[nGramFreqBad, 2] <- "<unk>"
-  nGramFreq <- nGramFreq[, -4]
+  # merge ngram & (n-1)gram freq lists
+  nGramListFreqGood <- nGramListFreqGood %>% left_join(previousFreq)
   
-  ptm <- proc.time() - ptm
-  print(paste("done in", round(ptm[3],2)))
+  # add score
+  nGramListFreqGood$score <- round(log(nGramListFreqGood$freq) - log(nGramListFreqGood$freq1),4)
   
-  print("consolidating")
-  ptm <- proc.time()
+  #-----
+  print(paste(">", round((proc.time() - ptm)[3],2)))
+  print(paste("==>", round((proc.time() - ptm1)[3],2)))
+  #-----
   
-  nGramFreq <- group_by(nGramFreq,c1,c2) %>% summarize(count=sum(count))
-  
-  ptm <- proc.time() - ptm
-  print(paste("done in", round(ptm[3],2)))
-  
-  ptm1 <- proc.time() - ptm1
-  print(paste("=> done in", round(ptm1[3],2)))
-  #return(nGramFreq)
-  
-  
-
-  print("----- filtering n-1 gram list -----")
-  ptm1 <- proc.time()
-  
-  print("building index of (n-1)-grams")
-  ptm <- proc.time()
-  
-  df <- select(nGramFreq,c1)
-  df$pos <- as.numeric(row(df))
-  nGramIndex <- group_by(df,c1) %>% summarize(pos=list(pos), count=n())
-  
-  ptm <- proc.time() - ptm
-  print(paste("done in", round(ptm[3],2)))
-  
-  print("filtering non-rare (n-1)-grams")
-  ptm <- proc.time()
-  
-  nGramGood <- nGramIndex %>% filter(count > minOccurences)
-  nGramGoodPos <- unlist(nGramGood$pos)
-  nGramFreq <- nGramFreq[nGramGoodPos, ]
-  
-  ptm <- proc.time() - ptm
-  print(paste("done in", round(ptm[3],2)))
-  
-  print("filtering eol# & <unk> in (n-1)-grams")
-  ptm <- proc.time()
-  
-  nGramFreq <- nGramFreq %>% filter(!grepl("eol#",c1))
-  nGramFreq <- nGramFreq %>% filter(!grepl("<unk>",c1))
-  
-  ptm <- proc.time() - ptm
-  print(paste("done in", round(ptm[3],2)))
-  
-  ptm1 <- proc.time() - ptm1
-  print(paste("=> done in", round(ptm1[3],2)))
-  
-  ptm2 <- proc.time() - ptm2
-  print(paste("===> ngram freq built in", round(ptm2[3],2)))
-  
-  return(nGramFreq)
-  
-  
+  return(list("ngramFreq"=nGramListFreqGood,"previousList"=nGramAggregate,"previousListFilter"=nGramListFilter))
   
 }

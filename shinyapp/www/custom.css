@@ -1,0 +1,123 @@
+
+/* ---------- MAKE MAPS RESPONSIVE ----------------------------- */
+/* the svg will only update on refresh though */
+.shiny-html-output.rChart.datamaps {
+	width: 100%;
+	padding-bottom: 50%;
+	position: relative;
+}
+
+.shiny-html-output.rChart.datamaps > .rChart.datamaps {
+	position: absolute;
+	top: 0; 
+	bottom: 0; 
+	left: 0; 
+	right: 0;
+	height:100%;
+	width:100%;
+}
+
+.shiny-html-output.rChart.datamaps > .rChart.datamaps > svg {
+	height:100%;
+	width:100%;
+}
+
+
+/* ---------- DISPLAY OPTION LIST IN TWO COLS ------------------ */
+
+.twocol {
+
+	-webkit-column-count: 2; /* Chrome, Safari, Opera */
+	-moz-column-count: 2; /* Firefox */
+	column-count: 2;
+	
+	-webkit-column-break-inside: avoid;
+	page-break-inside: avoid;
+	break-inside: avoid;
+
+}
+
+.twocol .shiny-options-group > .checkbox, 
+.twocol .shiny-options-group > .radio {
+	#margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+.twocol .shiny-options-group > div:nth-of-type(1) {
+	#margin-top:5px;
+}
+
+.twocol .checkbox+.checkbox, .twocol .radio+.radio {
+	margin-top:0;
+}
+
+/* ---------- UPDATE SLIDER COLOR ------------------------------ */
+
+.js-irs-0 .irs-bar {
+	border-top-color: #f39c12;
+	border-bottom-color: #f39c12;
+} 
+
+.js-irs-0 .irs-bar-edge {
+	border-color: #f39c12;
+}
+
+.js-irs-0 .irs-single, .js-irs-0 .irs-bar-edge, .js-irs-0 .irs-bar {
+	background: #f39c12;
+}
+
+.irs-from, .irs-to {
+	background: #e69311;
+}
+
+/* ---------- UPDATE BOX TITLES -------------------------------- */
+
+/* update box titles to display 
+   the question mark on the right */
+.box-title {
+	width: 100%;
+}
+.box-title > i {
+	float: right;
+}
+
+
+/* ---------- MISC --------------------------------------------- */
+
+.box {
+	border-radius:0;
+}
+
+.legend  {
+	padding-top:0.3em;
+	display:flex;
+	flex-flow: row wrap;
+	align-items:center;
+}	
+.legendText  {
+	margin-left: 0.2em;
+	height: 1.5em;
+	display:flex;
+	flex-flow: row wrap;
+	align-items:center;
+}
+
+.centerSpan {
+	text-align: center;
+}
+
+.shiny-html-output.rChart.nvd3 {
+	#width: 100%;
+}
+
+.shiny-html-output.rChart.nvd3 > svg > g.nvd3 {
+	#height:100px;
+	#width:100px;	
+}
+
+.info-box-content {
+	padding: 13px 10px;
+}
+
+.info-box-text, .info-box-number {
+	font-size: 1.6em;

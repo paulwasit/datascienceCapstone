@@ -2,7 +2,7 @@
 # we load the required library & functions
 library(RWeka)
 
-stupidBackoff <- function (start, wordArray) {
+stupidBackoff <- function (nGramFreq, start, wordArray) {
   ptm <- proc.time()
   comp <- data.frame(word=character(),
                      score=numeric(), 
@@ -19,11 +19,12 @@ stupidBackoff <- function (start, wordArray) {
         delimiters=' /\t\r\n=~*&_.,;:"()?!'
       )
     )
+    SBO <- stupidBackoffCalc(nGramFreq,token)
     comp <- rbind(
       comp, 
       data.frame('word' = word, 
-                 'score' = round(stupidBackoffCalc(token)[1],2),
-                 'ngram' = stupidBackoffCalc(token)[2]
+                 'score' = SBO[1],
+                 'ngram' = SBO[2]
       )
     )
   }
@@ -32,46 +33,35 @@ stupidBackoff <- function (start, wordArray) {
   return (comp)
 }
 
-getFrequency <- function (tokenLength, tokenText) {
-  value <- Gfreq[[as.character(tokenLength)]] %>% 
-    filter(list == tokenText) %>%
-    select(freq)
-  value <- log(value[,1])
-  return (value)
-}
-
-stupidBackoffCalc <- function(token) {
+stupidBackoffCalc <- function(nGramFreq, token) {
   
   tokenLength <- length(token)
-  tokenTextN <- paste(token, collapse = ' ')
+  newWord <- token[tokenLength]
   
-  # get frequency of the ngram
-  valueN <- getFrequency (tokenLength, tokenTextN)
+  if (tokenLength > 1) {
+    previousNgram <- paste(token[1:tokenLength-1], collapse = ' ')
+    sValue <- nGramFreq[[as.character(tokenLength)]] %>% 
+              filter(c1 == previousNgram) %>% filter(c2 == newWord)
+  }
+  else {
+    sValue <- nGramFreq[[as.character(tokenLength)]] %>% 
+              filter(c1 == newWord)
+  }
+  sValue <- sValue$score
   
-  # if ngram is found, we calculate its s-value
-  if (length(valueN) > 0) {
-    if (tokenLength > 1) {
-      tokenTextD <- paste(token[1:tokenLength-1], collapse = ' ') # starting (n-1) gram
-      valueD <- getFrequency (tokenLength-1, tokenTextD)
-    }
-    else {
-      valueD <- log(sum(Gfreq[["1"]][,2]))
-    }
-    sValue <- valueN - valueD
+  if (length(sValue) > 0) {
     sFound <- tokenLength
   }
-  
-  #otherwise we recursively get the s-value of the (n-1)gram
   else if (tokenLength > 1) {
-    recSBO <- stupidBackoffCalc(token[2:tokenLength])
-    sValue <- log(0.4) + recSBO[1]
+    recSBO <- stupidBackoffCalc(nGramFreq, token[2:tokenLength])
+    sValue <- round(log(0.4),2) + recSBO[1]
     sFound <- recSBO[2]
   }
-  
   else {
     #print('not found')
     sValue <- log(0)
     sFound <- 5
   }
   return(c(sValue,sFound))
+  
 }

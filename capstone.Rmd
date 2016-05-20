@@ -24,70 +24,11 @@ rm(createSampleUnigrams,createSample,tokenizeSent,
 
 ```{r}
 G1_list <- readRDS(paste0("./data/",lang,".fullSample",sampleSize,".G1clean.Rds"))
-G1_freq <- G1_list %>% 
-           group_by(ngram) %>% summarize(freq = n()) %>% arrange(desc(freq)) %>%
-           filter(!ngram %in% c('eol#')) %>%
-           transform(ngram = as.character(ngram))
 
-source('./helpers/ngramFrequencerNew.R')
-G2_full <- getFrequencies(G1_list,FALSE,G1_list,ngram=2,minOccurences=10)
-G2_freq <- G2_full[["ngramFreq"]]
-G2_previousList <- G2_full[["previousList"]]
-G2_previousListFilter <- G2_full[["previousListFilter"]]
+source('./helpers/ngramFreqCreator.R')
+nGramFreq <- getNgramFrequencies(G1_list,minOccurences)
+rm(getNgramFrequencies,getFrequencies)
 
-G3_full <- getFrequencies(G2_previousList,G2_previousListFilter,G1_list,ngram=3,minOccurences=10)
-G3_freq <- G3_full[["ngramFreq"]]
-G3_previousList <- G3_full[["previousList"]]
-G3_previousListFilter <- G3_full[["previousListFilter"]]
-
-G4_full <- getFrequencies(G3_previousList,G3_previousListFilter,G1_list,ngram=4,minOccurences=10)
-G4_freq <- G4_full[["ngramFreq"]]
-
-rm(G2_full,G2_previousList,G2_previousListFilter,G3_full,G3_previousList,G3_previousListFilter,G4_full)
-
-str(G3_freq)
-sum(G4_freq$freq)
-head(G4_freq)
+saveRDS(nGramFreq,paste0("./data/",lang,".fullSample",sampleSize,".nGramFreq.Rds"))
 ```
 
-
-
-
-
-
-
-```{r}
-source('./helpers/sampleUnigramsCreator/tokenizer.R')
-G2_list <- tokenize (paste0("./data/",lang,".fullSample",sampleSize,".sent.clean.txt"), ngram=2, keepEOL=FALSE)
-
-ptm <- proc.time()
-G2_freq <- data.frame(table(G2_list))
-G2_freq <- G2_freq %>% arrange(desc(Freq)) %>% filter (Freq > 10) %>% filter (!grepl("<unk>", G2_list))
-print(paste(">", round((proc.time() - ptm)[3],2)))
-sum(G2_freq$Freq)
-```
-
-
-```{r}
-source('./helpers/sampleUnigramsCreator/tokenizer.R')
-G3_list <- tokenize (paste0("./data/",lang,".fullSample",sampleSize,".sent.clean.txt"), ngram=3, keepEOL=FALSE)
-
-ptm <- proc.time()
-G3_freqA <- data.frame(table(G3_list))
-G3_freqA <- G3_freqA %>% arrange(desc(Freq)) %>% filter (Freq > 10) %>% filter (!grepl("<unk>", G3_list))
-print(paste(">", round((proc.time() - ptm)[3],2)))
-sum(G3_freqA$Freq)
-head(G3_freqA)
-```
-
-```{r}
-source('./helpers/sampleUnigramsCreator/tokenizer.R')
-G4_list <- tokenize (paste0("./data/",lang,".fullSample",sampleSize,".sent.clean.txt"), ngram=4, keepEOL=FALSE)
-
-ptm <- proc.time()
-G4_freqA <- data.frame(table(G4_list))
-G4_freqA <- G4_freqA %>% arrange(desc(Freq)) %>% filter (Freq > 10) %>% filter (!grepl("<unk>", G4_list))
-print(paste(">", round((proc.time() - ptm)[3],2)))
-sum(G4_freqA$Freq)
-head(G4_freqA)
-```
