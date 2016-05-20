@@ -2,66 +2,50 @@
 # we load the required library & functions
 library(RWeka)
 
-stupidBackoff <- function (nGramFreq, start, wordArray) {
+stupidBackoff <- function (nGramFreq, c1, c2) {
   ptm <- proc.time()
-  comp <- data.frame(word=character(),
-                     score=numeric(), 
-                     ngram=numeric(), 
-                     stringsAsFactors=FALSE) 
+  suggestedWords <- data.frame(c2=character(),
+                               score=numeric(), 
+                               ngram=numeric(), 
+                               stringsAsFactors=FALSE) 
   
-  for (word in wordArray) {
-    ngram <- tolower(paste(start, word))
-    token <- NGramTokenizer(
-      ngram, 
-      Weka_control(
-        min=1,
-        max=1, 
-        delimiters=' /\t\r\n=~*&_.,;:"()?!'
-      )
-    )
-    SBO <- stupidBackoffCalc(nGramFreq,token)
-    comp <- rbind(
-      comp, 
-      data.frame('word' = word, 
-                 'score' = SBO[1],
-                 'ngram' = SBO[2]
-      )
-    )
-  }
-  comp <- arrange(comp, desc(score))
-  print(proc.time() - ptm)
-  return (comp)
-}
-
-stupidBackoffCalc <- function(nGramFreq, token) {
+  len <- length(c1)
+  # g1 freq
+  suggestedWords <- nGramFreq[["1"]][1:3,] %>% 
+                    select(c2,score) %>%
+                    mutate(ngram=1)
   
-  tokenLength <- length(token)
-  newWord <- token[tokenLength]
+  # if this is the start of a sentence, return g1 freq
+  if (len == 0) return (suggestedWords)
+    
+  # otherwise, penalize score (stupid backoff)
+  suggestedWords$score <- suggestedWords$score + round(len*log(0.4),4)
   
-  if (tokenLength > 1) {
-    previousNgram <- paste(token[1:tokenLength-1], collapse = ' ')
-    sValue <- nGramFreq[[as.character(tokenLength)]] %>% 
-              filter(c1 == previousNgram) %>% filter(c2 == newWord)
+  # then check for (n>1)grams
+  for (i in 1:len) {
+    
+    # identify all candidates for the ngram
+    token <- paste(c1[i:len])  
+    lenT <- length(token)
+    ngramSuggestedWords <- nGramFreq[[as.character(lenT+1)]] %>% 
+                           filter(c1 == tolower(token)) %>%
+                           select(c2,score) %>%
+                           mutate(ngram=lenT+1) %>%
+                           mutate(score=score+round((len-i)*log(0.4),4)) #stupid bo penalty
+    
+    # select the three most likely candidates for each ngram
+    ngramSuggestedWords <- ngramSuggestedWords[1:min(3,nrow(ngramSuggestedWords)),]
+    
+    # merge with previous words
+    suggestedWords <- bind_rows(suggestedWords,ngramSuggestedWords)
+    
   }
-  else {
-    sValue <- nGramFreq[[as.character(tokenLength)]] %>% 
-              filter(c1 == newWord)
-  }
-  sValue <- sValue$score
   
-  if (length(sValue) > 0) {
-    sFound <- tokenLength
-  }
-  else if (tokenLength > 1) {
-    recSBO <- stupidBackoffCalc(nGramFreq, token[2:tokenLength])
-    sValue <- round(log(0.4),2) + recSBO[1]
-    sFound <- recSBO[2]
-  }
-  else {
-    #print('not found')
-    sValue <- log(0)
-    sFound <- 5
-  }
-  return(c(sValue,sFound))
+  suggestedWords <- suggestedWords %>% filter (c2 != c1[len]) %>% arrange(desc(score))
+  suggestedWords <- data.frame(suggestedWords[1:3,])
+  
+  return (suggestedWords)  
   
 }
+    
+    

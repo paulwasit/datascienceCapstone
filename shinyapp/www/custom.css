@@ -88,6 +88,15 @@
 	border-radius:0;
 }
 
+.tags {
+	margin-bottom:3px;
+}
+
+.tags button {
+	border-radius:0;
+	padding: 4px 12px;
+}
+
 .legend  {
 	padding-top:0.3em;
 	display:flex;

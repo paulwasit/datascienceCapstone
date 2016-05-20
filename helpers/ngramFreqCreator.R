@@ -12,7 +12,7 @@ getNgramFrequencies <- function (G1_list,minOccurences=10) {
              group_by(ngram) %>% summarize(freq = n()) %>% arrange(desc(freq)) %>%
              filter(!ngram %in% c('eol#')) %>%
              transform(ngram = as.character(ngram)) %>%
-             rename(c1=ngram)
+             rename(c2=ngram)
   
   names(G1_freq)
   G1_freq$score <- round(log(G1_freq$freq) - log(nrow(G1_list)),4)

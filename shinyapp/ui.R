@@ -52,17 +52,10 @@ body <- dashboardBody(
           column(width=1),
           column(
             width = 10,
-            box(width = NULL, status = "warning", solidHeader = TRUE, 
-              # year slider
-              fluidRow(
-                column( width = 1),
-                column(
-                  width = 10,
-                  div(style="display:inline-block",uiOutput("my_word1")),
-                  div(style="display:inline-block",uiOutput("my_word2")),
-                  div(style="display:inline-block",uiOutput("my_word3"))
-                )
-              )
+            div(class="tags",
+              div(style="display:inline-block",uiOutput("my_word1")),
+              div(style="display:inline-block",uiOutput("my_word2")),
+              div(style="display:inline-block",uiOutput("my_word3"))
             )
           )
         ),
