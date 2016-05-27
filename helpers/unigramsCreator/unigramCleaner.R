@@ -3,13 +3,13 @@ cleanUnigrams <- function (nGramList) {
   
   print ("----- Clean Unigrams -----")
   
-  levels(nGramList$ngram) <- c(levels(nGramList$ngram), '<unk>')
+  levels(nGramList$c2) <- c(levels(nGramList$c2), '<unk>')
   
   ptm <- proc.time()
   
   print("removing non words")
   nGramIndex <- createIndex(nGramList)
-  unk <- nGramIndex %>% filter(grepl("^[^a-z0-9]+$",ngram))
+  unk <- nGramIndex %>% filter(grepl("^[^a-z0-9]+$",c2))
   nGramList[unlist(unk[,2]), 1] <- "<unk>"
   
   print ("removing duplicates")
@@ -28,7 +28,7 @@ cleanUnigrams <- function (nGramList) {
 createIndex <- function (nGramList) {
   df <- nGramList
   df$pos <- as.numeric(row(df))
-  nGramIndex <- group_by(df,ngram) %>% summarize(pos=list(pos))
+  nGramIndex <- group_by(df,c2) %>% summarize(pos=list(pos))
   return(nGramIndex)
 }
 

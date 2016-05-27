@@ -84,18 +84,53 @@
 
 /* ---------- MISC --------------------------------------------- */
 
-.box {
+.shiny-input-container:not(.shiny-input-container-inline) {
+	width:100%;
+}
+
+textarea {
+	box-sizing: border-box;
+	resize: none;
+}
+
+.box, .info-box, .info-box-icon, .info-box-content {
 	border-radius:0;
 }
 
 .tags {
-	margin-bottom:3px;
+	margin-bottom:0;
+	padding:0;
+}
+
+.tags > div{
+	margin:0;
+	padding:0;
+	background-color: #e6e6e6;
 }
 
 .tags button {
 	border-radius:0;
 	padding: 4px 12px;
+	border-bottom:0;
+	width:100%;
 }
+
+.tags .btn-default:hover, .tags .btn-default:active, .tags .btn-default:focus, .tags .btn-default:active:hover {
+	color: #333;
+	background-color: #e6e6e6;
+	border-color: #ddd;
+	box-shadow:none;
+	-webkit-box-shadow:none;
+	outline: none;
+}
+
+.tags > div:first-child button {
+	border-right-width:0;
+}
+.tags > div:last-child button {
+	border-left-width:0;
+}
+
 
 .legend  {
 	padding-top:0.3em;

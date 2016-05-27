@@ -9,40 +9,54 @@ shinyServer(function(input, output, session) {
     HTML("<b>Input Zone</b>")
   })
   
-  ngram <- reactiveValues(
-    suggestedWords = getSuggestedWords(list("c1"=character(0),"c2"=character(0))), 
-    clickedWord = NULL
-  )
+  #ngram <- reactiveValues()
+  n <- reactiveValues(gram=updateSuggestedWordsList(""), newValue="")
   
+  # update button labels when ngram changes
   observe({
-    currentNgram <- getCurrentNgram(input$inputText)
-    suggestedWordsDF <- getSuggestedWords(currentNgram)
-    print(suggestedWordsDF)
-    ngram$suggestedWords <- suggestedWordsDF[,1]
+    lapply(1:3, function(i) {updateButtonLabels(i,output,n$gram)})
+    output$table <- n$gram$fullList
+  })
+  
+  # update shortList when the user types
+  #shinyjs::onevent("keypress","inputText", {
+    #n$gram <- updateSuggestedWordsList(input$inputText)
+  #})
+  
+  shinyjs::onevent("keyup","inputText", {
+    js$getCursorPos("inputText") # fire fn
+  })
+  
+  shinyjs::onclick("inputText", {
+    js$getCursorPos("inputText") # fire fn
+  })
+  
+  observeEvent(input$inputText, {
+    js$getCursorPos("inputText") # fire fn
+  })
+  
+  observeEvent(input$cursorPos,{
+    print(input$cursorPos)
+    tempGram <- updateSuggestedWordsList(input$cursorPos[1])
+    if (n$gram[["shortList"]][1] != tempGram[["shortList"]][1]) {
+      n$gram <- tempGram
+    }
+  })
+  
+  # update input & shortList when the user clicks on a suggested word
+  lapply(1:3, function(i) {
+    observeEvent(input[[paste0("word",i)]], { 
+      if (substr(input$cursorPos[2],1,1)!=' ') {
+        newValue <- paste(paste0(n$gram$currentText,n$gram$shortList[i]),input$cursorPos[2])
+      }
+      else {
+        newValue <- paste0(n$gram$currentText,n$gram$shortList[i],input$cursorPos[2])
+      }
+      
+      n$gram <- updateSuggestedWordsList(newValue)
+      session$sendInputMessage("inputText", list(value = newValue))
+    })
   })
 
-  observeEvent(ngram$suggestedWords, {
-    output$my_word1 <- renderUI({actionButton("word1", label = ngram$suggestedWords[1])})
-    output$my_word2 <- renderUI({actionButton("word2", label = ngram$suggestedWords[2])})
-    output$my_word3 <- renderUI({actionButton("word3", label = ngram$suggestedWords[3])})
-  })
-  
-  # identify the clicked word
-  observeEvent(input$word1, { ngram$clickedWord <- ngram$suggestedWords[1] })
-  observeEvent(input$word2, { ngram$clickedWord <- ngram$suggestedWords[2] })
-  observeEvent(input$word3, { ngram$clickedWord <- ngram$suggestedWords[3] })
-  
-  observeEvent(ngram$clickedWord,{
-               
-    y <- isolate(input$inputText)
-    
-    # This will change the value of input$inText, based on x
-    updateTextInput(session, "inputText", 
-                    value = paste(y,ngram$clickedWord,""))
-    
-  })
-  
-  
-  
 })
 

@@ -10,11 +10,13 @@ getFrequencies <- function (previousFull,G1_list,ngram=2,minOccurences=10) {
   previousFreq <- previousFull[["ngramFreq"]] %>% select(-score)
   previousList <- previousFull[["previousList"]]
   
+  uniGramListFilter <- G1_list[,1] != "<unk>"
   nGramListFilter <- G1_list[,1] != "eol#" & G1_list[,1] != "<unk>"
   
   # logical vector; TRUE for ngrams where (n-1)grams are ok & new words are neither eol# nor <unk>
+  # note: ok to start with #eol (to handle beg of sent)
   if (ngram==2) {
-    nGramListFilter <- nGramListFilter[-nrow(previousList)] & nGramListFilter[-(1:(ngram-1))]
+    nGramListFilter <- uniGramListFilter[-nrow(previousList)] & nGramListFilter[-(1:(ngram-1))]
   }
   else {
     previousListFilter <- previousFull[["previousListFilter"]]

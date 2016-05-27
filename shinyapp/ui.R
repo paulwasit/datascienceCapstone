@@ -1,5 +1,6 @@
 library(shiny)
 library(shinydashboard)
+ library(V8) # required for extendshinyjs in shinyapps
 library(shinyjs) #used to hide some inputs
 library(shinyBS) #used for tooltips
 library(markdown)
@@ -20,79 +21,80 @@ header$children[[2]]$children <-  tags$span("auto", tags$b("Keyboard"))
 #tab1 <- tabItem(tabName = "dashboard",
 body <- dashboardBody(
   
-  #enable shinyjs
   useShinyjs(),
+  extendShinyjs(script = "./www/cursorPosTextarea.js"),
   
-  # css to properly resize the map svg
   tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+    tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),
+    tags$script(src = "keypressTextarea.js"),
+    tags$script(src = "cursorPosTextarea.js"),
+    tags$script(src = "focusTextarea.js")
   ),
 
 # ------------------------------ LEFT PANEL ----------------------------------- #   
   
   fluidRow(
     
-    column(width = 2),
-           
     #left panel
-    column(width = 7,
-           
-      # harm map
-      box(width = NULL, status = "primary", solidHeader = TRUE, 
-          title = tagList(htmlOutput("textBoxTitle", container = tags$span, class = "centerSpan"),
-                          tags$i(id="textTT", shiny::icon("question-circle"))),
-          bsTooltip("textTT", 
-                    "the three most likely words will appear in the yellow box",
-                    "bottom"),
+    customColumn(customClass="col-md-6 col-md-offset-3",
+     
+      # text box
+      #box(width = NULL, status = "primary", solidHeader = TRUE, 
+      #    title = tagList(htmlOutput("textBoxTitle", container = tags$span, class = "centerSpan"),
+      #                    tags$i(id="textTT", shiny::icon("question-circle"))),
+      #    bsTooltip("textTT", 
+      #              "the three most likely words will appear in the yellow box",
+      #              "bottom"),
 
 # ------------------------------ MAP ------------------------------------------ # 
 
         # SELECT BOX: three most likely words (action on click: add to input box)
         fluidRow(
-          column(width=1),
           column(
-            width = 10,
+            width = 12,
             div(class="tags",
-              div(style="display:inline-block",uiOutput("my_word1")),
-              div(style="display:inline-block",uiOutput("my_word2")),
-              div(style="display:inline-block",uiOutput("my_word3"))
+              div(class="col-xs-4",uiOutput("my_word1")),
+              div(class="col-xs-4",uiOutput("my_word2")),
+              div(class="col-xs-4",uiOutput("my_word3"))
             )
           )
         ),
         
         # INPUT BOX: triggers three most likely words
         fluidRow(
-          column(width=1),
           column(
-            width = 10,
-            textInput("inputText", label = NULL, value = "", width = NULL, placeholder = "start typing")
-            #showOutput("chart1", "datamaps", package="rMaps")
+            width = 12,
+            textareaInput("inputText", rows = 5, cols = 35)
           )
         )
-      )
+
+      #)
     ),  
 
 # ------------------------------ RIGHT PANEL ---------------------------------- # 
 
     # right panel
-    column(width = 3,
-
-      #hr(),
-      
-      fluidRow(
-        column(width = 12,
-          box(width = NULL, status = "primary", solidHeader = TRUE, 
-              title = tagList("Top 10", tags$i(id="top10TT", shiny::icon("question-circle"))),
-              bsTooltip("top10TT", 
-                        "Top 10",
-                        "bottom")
+    customColumn(customClass="col-md-3 visible-md-block visible-lg-block",
+    
+      fluidRow(column(width = 12,
+        box(width = NULL, status = "primary", solidHeader = TRUE, 
+          title = tagList("Top 10", tags$i(id="top10TT", shiny::icon("question-circle"))),
+          bsTooltip("top10TT", "Top 10", "bottom"),
             
-                #,DT::dataTableOutput("table")
-
-          )
+          DT::dataTableOutput("table")
+          
         )
-      )
+      ))
+      
+      #fluidRow(infoBox(width = 12, 
+      #  "% auto",
+      #  NULL,
+      #  icon = icon("exclamation"),
+      #  color="light-blue")
+      #)
+      
     )
+
   )
 )
 

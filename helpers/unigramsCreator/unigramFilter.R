@@ -7,7 +7,7 @@ filterUnigrams <- function (nGramList, minOccurences) {
   
   print("building frequency table")
   nGramFreq <- data.frame(table(nGramList))
-  names(nGramFreq) <- c('ngram','freq')
+  names(nGramFreq) <- c('c2','freq')
   nGramFreq <- arrange(nGramFreq, desc(freq))
   
   print("identifying rare occurences")
@@ -18,7 +18,7 @@ filterUnigrams <- function (nGramList, minOccurences) {
   nGramIndex <- createIndex(nGramList)
   
   print("removing rare occurences")
-  unk <- nGramIndex %>% filter(ngram %in% unkNgrams[,1])
+  unk <- nGramIndex %>% filter(c2 %in% unkNgrams[,1])
   nGramList[unlist(unk[,2]), 1] <- "<unk>"
   
   ptm <- proc.time() - ptm
@@ -29,9 +29,9 @@ filterUnigrams <- function (nGramList, minOccurences) {
 }
 
 createIndex <- function (nGramList) {
-  df <- select(nGramList,ngram)
+  df <- select(nGramList,c2)
   df$pos <- as.numeric(row(df))
-  nGramIndex <- group_by(df,ngram) %>% summarize(pos=list(pos))
+  nGramIndex <- group_by(df,c2) %>% summarize(pos=list(pos))
   return(nGramIndex)
 }
 

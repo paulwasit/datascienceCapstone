@@ -22,6 +22,7 @@ tokenize <- function (conPath, ngram, keepEOL=FALSE) {
     if ( keepEOL==TRUE ) {
       chunk <- paste(chunk,"eol#") #this will be used to keep the line breaks after cleaning unknown words
     }
+    
     token <- NGramTokenizer(
       chunk, 
       Weka_control(

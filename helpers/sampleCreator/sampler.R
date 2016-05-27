@@ -1,5 +1,5 @@
 
-createSample <- function (lang, types, sampleSize) {
+createRawSample <- function (lang, types, sampleSize) {
 
   print("----- Build sample -----")
   
