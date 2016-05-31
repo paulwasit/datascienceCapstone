@@ -5,8 +5,7 @@ shinyjs.getCursorPos = function(textareaID) {
 	var input = $(textareaID), // or $('#myinput')[0]
 		cursorPos = input[0].selectionStart,
 		inputText = input.val();
-
-	
+		
 	// detect if selection
 	if (input.selectionStart !== input.selectionEnd)
 	{
@@ -14,16 +13,5 @@ shinyjs.getCursorPos = function(textareaID) {
 		input.value.substring(input.selectionStart, input.selectionEnd);
 	}
 
-	var beforeCursor = inputText.substring(0, cursorPos),
-		afterCursor = inputText.substring(cursorPos, inputText.length)
-		
-	Shiny.onInputChange("cursorPos", [beforeCursor,afterCursor]);
+	Shiny.onInputChange("cursorPos", cursorPos);
 }
-
-/*
-$(document).on("click", ".reactiveTextarea", function(evt) {
-	var number = [Math.random(),Math.random()];
-	Shiny.onInputChange("cursorPos", number);
-	
-});
-*/

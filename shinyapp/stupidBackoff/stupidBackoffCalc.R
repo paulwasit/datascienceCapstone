@@ -1,8 +1,9 @@
 
 # we load the required library & functions
 library(RWeka)
+library(dplyr)
 
-stupidBackoffCalc <- function (nGramFreq, previousWords, currentWord) {
+getNextWords <- function (nGramFreq, previousWords, currentWord) {
   ptm <- proc.time()
   suggestedWords <- data.frame(c2=character(),
                                score=numeric(), 
@@ -58,7 +59,7 @@ stupidBackoffCalc <- function (nGramFreq, previousWords, currentWord) {
   
   # sort & return
   suggestedWords <- data.frame(suggestedWords %>% arrange(desc(score)))
-  return (suggestedWords)  
+  return (suggestedWords[1:3,1])  
   
 }
 
