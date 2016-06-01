@@ -6,7 +6,7 @@ shinyServer(function(input, output, session) {
     "gram" = getNextWords(nGramFreq,"eol#",character(0)),
     "text" = getSplitText("",0)
   )
-
+  
   # update cursor pos
   shinyjs::onevent("keyup","inputText", { js$getCursorPos("inputText") })
   shinyjs::onclick("inputText", { js$getCursorPos("inputText") })
@@ -15,10 +15,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$cursorPos,{
     n$text <- getSplitText(input$inputText,input$cursorPos)
     n$gram <- getNextWords(nGramFreq,n$text$previousWords,n$text$currentWord)
-  })
-  
-  # update button labels when ngram change
-  observeEvent(n$gram, {
     lapply(1:3, function(i) {updateButtonLabels(i,output,n$gram)})
   })
   
@@ -28,6 +24,5 @@ shinyServer(function(input, output, session) {
       updateTextArea(i,session,input,n$gram,n$text)
     })
   })
-
+  
 })
-

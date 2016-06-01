@@ -1,5 +1,5 @@
 
-getNgramFrequencies <- function (G1_list,minOccurences=10) {
+getNgramFrequencies <- function (G1_list,minOccurrences=10) {
   
   #-----
   print("---------- full ngram frequencies list ----------")
@@ -17,9 +17,9 @@ getNgramFrequencies <- function (G1_list,minOccurences=10) {
   
   G1_full <- list("ngramFreq"=G1_freq,"previousList"=G1_list)
   
-  G2_full <- getFrequencies(G1_full,G1_list,ngram=2,minOccurences)
-  G3_full <- getFrequencies(G2_full,G1_list,ngram=3,minOccurences)
-  G4_full <- getFrequencies(G3_full,G1_list,ngram=4,minOccurences)
+  G2_full <- getFrequencies(G1_full,G1_list,ngram=2,minOccurrences)
+  G3_full <- getFrequencies(G2_full,G1_list,ngram=3,minOccurrences)
+  G4_full <- getFrequencies(G3_full,G1_list,ngram=4,minOccurrences)
   
   G2_freq <- G2_full[["ngramFreq"]]
   G3_freq <- G3_full[["ngramFreq"]]

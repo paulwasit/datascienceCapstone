@@ -84,6 +84,30 @@
 
 /* ---------- MISC --------------------------------------------- */
 
+@media (max-width: 767px) {
+	body > .wrapper > .main-header > .navbar {
+		display:none !important;
+	}
+	.btn, .reactiveTextarea {
+		font-size: 1.4em;
+	}
+}
+
+/*
+.btn, textarea {
+	font-size: 1.2em;
+}
+*/
+
+.content {
+	padding: 15px 0;
+}
+
+.content > .col-md-6 {
+	padding-left: 0;
+	padding-right: 0;
+}
+
 .form-group {
     margin-bottom: 0;
 }

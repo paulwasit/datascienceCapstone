@@ -14,4 +14,6 @@ shinyjs.getCursorPos = function(textareaID) {
 	}
 
 	Shiny.onInputChange("cursorPos", cursorPos);
+	return cursorPos;
+	
 }

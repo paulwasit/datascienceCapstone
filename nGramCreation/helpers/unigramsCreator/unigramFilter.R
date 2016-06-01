@@ -1,5 +1,5 @@
 
-filterUnigrams <- function (nGramList, minOccurences) {
+filterUnigrams <- function (nGramList, minOccurrences) {
   
   print ("----- Remove Rare Unigrams -----")
   
@@ -11,7 +11,7 @@ filterUnigrams <- function (nGramList, minOccurences) {
   nGramFreq <- arrange(nGramFreq, desc(freq))
   
   print("identifying rare occurences")
-  unkNgrams <- nGramFreq %>% filter(freq <= minOccurences)
+  unkNgrams <- nGramFreq %>% filter(freq <= minOccurrences)
   unkNgrams <- data.frame(unkNgrams[,1])
   
   print("building position index")

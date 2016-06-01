@@ -11,7 +11,7 @@ source("./stupidBackoff/stupidBackoffNgram.R")
 options(shiny.port = 8000) # specify local port
 
 # load DB
-nGramFreq <- readRDS("./data/en_US.fullSample10.nGramFreq10.Rds")
+nGramFreq <- readRDS("./data/en_US.10.freq.10.Rds")
 nGramFreq[["1"]] <- nGramFreq[["1"]][-2,] # remove <unk> freq
 
 
@@ -46,11 +46,6 @@ updateTextArea <- function (i,session,input,ngram,ntext) {
   )
   
 }
-
-# ??
-registerInputHandler("keypressBinding", function(data, ...) {
-  data
-}, force = TRUE)
 
 
 # -------------------- UI -------------------- #

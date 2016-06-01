@@ -1,14 +1,14 @@
 
-createUnigrams <- function (lang, sampleSize, minOcurrences) {
+createUnigrams <- function (lang, sampleSize, minOccurrences) {
   
   print("---------- Create Unigrams ----------")
   ptm <- proc.time()
   
   # first tokenization (40sec/1M lines)
   source('./helpers/unigramsCreator/tokenizer.R') # custom split: remove ', add =<>~*&_/\
-  G1_list <- tokenize(paste0("./data/",lang,".fullSample",sampleSize,".sent.txt"), 1, TRUE)
+  G1_list <- tokenize(paste0("./data/",lang,".",sampleSize,".sent.txt"), 1, TRUE)
   G1_list <- data.frame('c2'=G1_list)
-  saveRDS(G1_list,paste0("./data/",lang,".fullSample",sampleSize,".G1raw.Rds"))
+  # saveRDS(G1_list,paste0("./data/",lang,".",sampleSize,".G1.raw.Rds"))
 
   # remove non words & duplicates
   source('./helpers/unigramsCreator/unigramCleaner.R')
@@ -16,7 +16,7 @@ createUnigrams <- function (lang, sampleSize, minOcurrences) {
 
   # remove rare unigrams
   source('./helpers/unigramsCreator/unigramFilter.R')
-  G1_list <- filterUnigrams(G1_list, minOccurences)
+  G1_list <- filterUnigrams(G1_list, as.numeric(minOccurrences))
   
   print("----- Concatanate Text -----")
   ptm1 <- proc.time()
@@ -46,15 +46,17 @@ createUnigrams <- function (lang, sampleSize, minOcurrences) {
   print("----- Save Clean Text -----")
   ptm1 <- proc.time()
   
-  write(G1_text, paste0("./data/",lang,".fullSample",sampleSize,".sent.clean.txt"), sep = "\t")
+  write(G1_text, paste0("./data/",lang,".",sampleSize,".sent.clean.",minOccurrences,".txt"), sep = "\t")
   
   ptm1 <- proc.time()-ptm1
   print (paste("total-",round(ptm1[3],2)))
   
   # save G1 list
-  G1_list <- tokenize(paste0("./data/",lang,".fullSample",sampleSize,".sent.clean.txt"), 1, TRUE)
+  G1_list <- tokenize(paste0("./data/",lang,".",sampleSize,".sent.clean.",minOccurrences,".txt"), 1, TRUE)
   G1_list <- data.frame('c2'=G1_list)
-  saveRDS(G1_list,paste0("./data/",lang,".fullSample",sampleSize,".G1clean.Rds"))
+  
+  # saveRDS(G1_list,paste0("./data/",lang,".",sampleSize,".G1.clean.",minOccurrences,".Rds"))
+  return(G1_list)
   
   ptm <- proc.time() - ptm
   print("----------")

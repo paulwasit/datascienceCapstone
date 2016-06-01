@@ -11,6 +11,6 @@ Thumbs.db
 
 # Quizz & Data
 # ============
+rawData/
 data/
-
-
+nGramFreq/

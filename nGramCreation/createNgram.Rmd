@@ -1,0 +1,44 @@
+
+### parameters
+
+```{r}
+setwd('D:\\datascienceCapstone\\nGramCreation')
+library(dplyr)
+
+# sample size
+lang <- "en_US"
+sampleSize <- "10"
+minOccurrences <- "10"
+```
+
+### sampling + sentences tokenization
+
+```{r}
+source('./helpers/sampleCreator.R')
+createSample(lang, sampleSize)
+rm(createSample,createRawSample,tokenizeSent)
+```
+
+### unigrams tokenizing 
+#   + cleaning (remove duplicates / identify non words as <unk>) 
+#   + filtering (identify words < minOccurrences as <unk>)
+
+### fequency tables
+
+```{r}
+source('./helpers/unigramsCreator.R')
+G1_list <- createUnigrams(lang, sampleSize, minOccurrences)
+rm(createUnigrams,tokenize,cleanUnigrams,createIndex)
+
+# frequency tables
+source('./helpers/ngramFreqCreator.R')
+nGramFreq <- getNgramFrequencies(G1_list,as.numeric(minOccurrences))
+rm(getNgramFrequencies,getFrequencies)
+
+# quick unigram frequency table
+source('./helpers/dictCreator.R')
+nGramFreq[["0"]] <- createDictList(nGramFreq[["1"]],1)
+  
+saveRDS(nGramFreq,paste0("../nGramFreq/",lang,".",sampleSize,".freq.",minOccurrences,".Rds"))
+```
+

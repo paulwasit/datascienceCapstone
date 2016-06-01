@@ -11,7 +11,7 @@ createRawSample <- function (lang, types, sampleSize) {
     
     print(paste("---",type,"---"))
     
-    src <- paste0('./data/', lang, '/', lang, '.', type, '.txt')
+    src <- paste0('../rawData/', lang, '/', lang, '.', type, '.txt')
     
     # readLines - 9.5sec
     print("read src")
@@ -25,7 +25,7 @@ createRawSample <- function (lang, types, sampleSize) {
     
     print("select sample lines")
     set.seed(23)
-    inSample <- rbinom(n=length(fullText),size=1,prob=sampleSize/100)
+    inSample <- rbinom(n=length(fullText),size=1,prob=as.numeric(sampleSize)/100)
     sampleText <- fullText[inSample==1] 
     
     print("convert UTF-8 characters")
@@ -42,7 +42,7 @@ createRawSample <- function (lang, types, sampleSize) {
   }
 
   print("save sample file")
-  dest <- paste0('./data/', lang, '.fullSample', sampleSize, '.txt') 
+  dest <- paste0('./data/', lang, '.', sampleSize, '.txt') 
   write(exportText, dest, sep = "\t")
   
   ptm <- proc.time() - ptm
