@@ -44,7 +44,8 @@ getSplitText <- function(text,cursorPos) {
     }
       
     # we only keep ngrams up to 4, so c1 length is 3 max 
-    if (len <= 3) c1 <- ngram
+    if (len == 0) c1 <- "eol#"
+    else if (len <= 3) c1 <- ngram
     else c1 <- ngram[(len-2):len]
   
   }

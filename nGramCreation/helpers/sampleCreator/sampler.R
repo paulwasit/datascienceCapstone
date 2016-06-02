@@ -1,5 +1,5 @@
 
-createRawSample <- function (lang, types, sampleSize) {
+createRawSample <- function (lang, types, sampleSize, testSize) {
 
   print("----- Build sample -----")
   
@@ -26,7 +26,14 @@ createRawSample <- function (lang, types, sampleSize) {
     print("select sample lines")
     set.seed(23)
     inSample <- rbinom(n=length(fullText),size=1,prob=as.numeric(sampleSize)/100)
-    sampleText <- fullText[inSample==1] 
+    
+    if (as.numeric(testSize)>0) {
+      inTest <- rbinom(n=(length(fullText)-sum(inSample)),size=1,prob=as.numeric(testSize)/100)
+      sampleText <- fullText[inSample==0][inTest==1]
+    }
+    else {
+      sampleText <- fullText[inSample==1] 
+    }
     
     print("convert UTF-8 characters")
     sampleText <- gsub("\u00E2\u20AC\u00A6", '...', sampleText)
@@ -42,7 +49,12 @@ createRawSample <- function (lang, types, sampleSize) {
   }
 
   print("save sample file")
-  dest <- paste0('./data/', lang, '.', sampleSize, '.txt') 
+  if (as.numeric(testSize)>0) {
+    dest <- paste0('./data/', lang, '.test.', testSize, '.txt') 
+  }
+  else {
+    dest <- paste0('./data/', lang, '.', sampleSize, '.txt') 
+  }
   write(exportText, dest, sep = "\t")
   
   ptm <- proc.time() - ptm

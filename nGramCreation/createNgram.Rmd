@@ -8,7 +8,9 @@ library(dplyr)
 # sample size
 lang <- "en_US"
 sampleSize <- "10"
-minOccurrences <- "10"
+testSize <- "0.02"
+minOccurrencesUniGrams <- "01"
+minOccurrences <- "1000"
 ```
 
 ### sampling + sentences tokenization
@@ -21,7 +23,7 @@ rm(createSample,createRawSample,tokenizeSent)
 
 ### unigrams tokenizing 
 #   + cleaning (remove duplicates / identify non words as <unk>) 
-#   + filtering (identify words < minOccurrences as <unk>)
+#   + filtering (identify )words < minOccurrences as <unk>)
 
 ### fequency tables
 
@@ -38,7 +40,52 @@ rm(getNgramFrequencies,getFrequencies)
 # quick unigram frequency table
 source('./helpers/dictCreator.R')
 nGramFreq[["0"]] <- createDictList(nGramFreq[["1"]],1)
-  
+
 saveRDS(nGramFreq,paste0("../nGramFreq/",lang,".",sampleSize,".freq.",minOccurrences,".Rds"))
 ```
 
+
+### mixed fequency tables
+
+```{r}
+source('./helpers/unigramsCreator.R')
+G1_list <- createUnigrams(lang, sampleSize, minOccurrencesUniGrams)
+rm(createUnigrams,tokenize,cleanUnigrams,createIndex)
+
+# frequency tables
+source('./helpers/ngramFreqCreator.R')
+nGramFreq <- getNgramFrequencies(G1_list,as.numeric(minOccurrences))
+rm(getNgramFrequencies,getFrequencies)
+
+# quick unigram frequency table
+source('./helpers/dictCreator.R')
+nGramFreq[["0"]] <- createDictList(nGramFreq[["1"]],1)
+  
+saveRDS(nGramFreq,paste0("../nGramFreq/",lang,".",sampleSize,".freq.",minOccurrencesUniGrams,".",minOccurrences,".Rds"))
+```
+
+
+### test sampling + sentences tokenization
+
+```{r}
+source('./helpers/sampleCreator.R')
+createSample(lang, sampleSize, testSize)
+rm(createSample,createRawSample,tokenizeSent,sent_token_annotator)
+
+source('./helpers/unigramsCreator.R')
+G1_list <- createUnigrams(lang, sampleSize, minOccurrences,testSize)
+rm(createUnigrams,tokenize,cleanUnigrams,createIndex,G1_list)
+```
+
+
+### dictionarize lists
+```{r}
+source('./helpers/dictCreator.R')
+minOccurrences <- "1000"
+nGramFreq <- readRDS(paste0("../nGramFreq/",lang,".",sampleSize,".freq.",minOccurrences,".Rds"))
+nGramFreq[["22"]] <- createDictList(nGramFreq[["2"]],1)
+nGramFreq[["33"]] <- createDictList(nGramFreq[["3"]],1)
+nGramFreq[["44"]] <- createDictList(nGramFreq[["4"]],1)
+saveRDS(nGramFreq,paste0("../nGramFreq/",lang,".",sampleSize,".freq.",minOccurrences,".Rds"))
+tail(nGramFreq[["3"]])
+```

@@ -1,12 +1,16 @@
 
-createUnigrams <- function (lang, sampleSize, minOccurrences) {
+createUnigrams <- function (lang, sampleSize, minOccurrences, testSize="0") {
   
   print("---------- Create Unigrams ----------")
   ptm <- proc.time()
   
+  srcName <- paste0("./data/",lang,".",sampleSize)
+  if (as.numeric(testSize)>0) srcName <- paste0(srcName,".test.",testSize)
+  srcName <- paste0(srcName,".sent")
+  
   # first tokenization (40sec/1M lines)
   source('./helpers/unigramsCreator/tokenizer.R') # custom split: remove ', add =<>~*&_/\
-  G1_list <- tokenize(paste0("./data/",lang,".",sampleSize,".sent.txt"), 1, TRUE)
+  G1_list <- tokenize(paste0(srcName,".txt"), 1, TRUE)
   G1_list <- data.frame('c2'=G1_list)
   # saveRDS(G1_list,paste0("./data/",lang,".",sampleSize,".G1.raw.Rds"))
 
@@ -14,9 +18,11 @@ createUnigrams <- function (lang, sampleSize, minOccurrences) {
   source('./helpers/unigramsCreator/unigramCleaner.R')
   G1_list <- cleanUnigrams(G1_list)
 
-  # remove rare unigrams
-  source('./helpers/unigramsCreator/unigramFilter.R')
-  G1_list <- filterUnigrams(G1_list, as.numeric(minOccurrences))
+  # remove rare unigrams when building the freq table
+  if (testSize=="0") {
+    source('./helpers/unigramsCreator/unigramFilter.R')
+    G1_list <- filterUnigrams(G1_list, as.numeric(minOccurrences))
+  }
   
   print("----- Concatanate Text -----")
   ptm1 <- proc.time()
@@ -46,13 +52,15 @@ createUnigrams <- function (lang, sampleSize, minOccurrences) {
   print("----- Save Clean Text -----")
   ptm1 <- proc.time()
   
-  write(G1_text, paste0("./data/",lang,".",sampleSize,".sent.clean.",minOccurrences,".txt"), sep = "\t")
+  destName <- paste0(srcName,".clean")
+  if (testSize=="0") destName <- paste0(destName,".",minOccurrences)
+  write(G1_text, paste0(destName,".txt"), sep = "\t")
   
   ptm1 <- proc.time()-ptm1
   print (paste("total-",round(ptm1[3],2)))
   
   # save G1 list
-  G1_list <- tokenize(paste0("./data/",lang,".",sampleSize,".sent.clean.",minOccurrences,".txt"), 1, TRUE)
+  G1_list <- tokenize(paste0(destName,".txt"), 1, TRUE)
   G1_list <- data.frame('c2'=G1_list)
   
   # saveRDS(G1_list,paste0("./data/",lang,".",sampleSize,".G1.clean.",minOccurrences,".Rds"))

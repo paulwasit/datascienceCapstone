@@ -14,11 +14,20 @@ tokenize <- function (conPath, ngram, keepEOL=FALSE) {
   ptm1 <- proc.time()
   
   con <- file(conPath, "rb")
-  while(TRUE) {
-    
+  conLines <- length(readLines(con))
+  conLines2 <- round(conLines/10000,0)+1
+  close(con)
+  con <- file(conPath, "rb")
+  pb <- txtProgressBar(min = 0, max = conLines2, style = 3)
+  
+  #while(TRUE) {
+  for (i in 1:conLines2) {
     # prepare chunk for tokenization
-    chunk <- tolower(readLines(con, 10000))
-    if ( length(chunk) == 0 ) break
+    chunkSize <- if (i==conLines2) conLines-10000*(i-1) else 10000
+    
+    chunk <- tolower(readLines(con, chunkSize))
+    setTxtProgressBar(pb, i)
+    
     if ( keepEOL==TRUE ) {
       chunk <- paste(chunk,"eol#") #this will be used to keep the line breaks after cleaning unknown words
     }
@@ -34,11 +43,12 @@ tokenize <- function (conPath, ngram, keepEOL=FALSE) {
     fullText <- c(fullText, token)
     i <- i+1
     ptm1 <- proc.time() - ptm1
-    print (paste(i,"-",round(ptm1[3],2)))
+    #print (paste(i,"-",round(ptm1[3],2)))
     ptm1 <- proc.time()
     
   }
   close(con)
+  close(pb)
   
   ptm <- proc.time() - ptm
   print (paste("total-",round(ptm[3],2)))
