@@ -3,7 +3,7 @@ shinyServer(function(input, output, session) {
   
   # init ngram
   n <- reactiveValues(
-    "gram" = getNextWords(nGramFreq,"eol#",character(0)),
+    "gram" = getNextWords(nGramFreq,"eol#",character(0),tList),
     "text" = getSplitText("",0)
   )
   
@@ -14,7 +14,7 @@ shinyServer(function(input, output, session) {
   # update ngram when cursor pos change
   observeEvent(input$cursorPos,{
     n$text <- getSplitText(input$inputText,input$cursorPos)
-    n$gram <- getNextWords(nGramFreq,n$text$previousWords,n$text$currentWord)
+    n$gram <- getNextWords(nGramFreq,n$text$previousWords,n$text$currentWord,tList)
     lapply(1:3, function(i) {updateButtonLabels(i,output,n$gram)})
   })
   

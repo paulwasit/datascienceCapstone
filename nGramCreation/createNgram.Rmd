@@ -81,11 +81,18 @@ rm(createUnigrams,tokenize,cleanUnigrams,createIndex,G1_list)
 ### dictionarize lists
 ```{r}
 source('./helpers/dictCreator.R')
-minOccurrences <- "1000"
+minOccurrences <- "10"
 nGramFreq <- readRDS(paste0("../nGramFreq/",lang,".",sampleSize,".freq.",minOccurrences,".Rds"))
-nGramFreq[["22"]] <- createDictList(nGramFreq[["2"]],1)
-nGramFreq[["33"]] <- createDictList(nGramFreq[["3"]],1)
-nGramFreq[["44"]] <- createDictList(nGramFreq[["4"]],1)
-saveRDS(nGramFreq,paste0("../nGramFreq/",lang,".",sampleSize,".freq.",minOccurrences,".Rds"))
-tail(nGramFreq[["3"]])
+
+newNgramFreq <- list()
+newNgramFreq[["0"]] <- createDictList(nGramFreq[["1"]],1)
+newNgramFreq[["1"]] <- nGramFreq[["1"]][1:7,c("c2","score")]
+newNgramFreq[["2"]] <- createValueList(nGramFreq[["2"]])
+newNgramFreq[["3"]] <- createValueList(nGramFreq[["3"]])
+newNgramFreq[["4"]] <- createValueList(nGramFreq[["4"]])
+
+saveRDS(newNgramFreq,paste0("../nGramFreq/",lang,".",sampleSize,".freq.",minOccurrences,".fast.Rds"))
+library(rjson)
+freqJSON <- toJSON(nGramFreq)
+write(freqJSON, paste0("../nGramFreq/",lang,".",sampleSize,".freq.",minOccurrences,".fast.json"))
 ```

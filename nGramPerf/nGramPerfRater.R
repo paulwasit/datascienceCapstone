@@ -38,7 +38,7 @@ checkSent <- function (sent,freqValue) {
   
   print(paste0(nGramName,freqValue,".Rds"))
   nGramFreq <- readRDS(paste0(nGramName,freqValue,".Rds"))
-  nGramFreq[["1"]] <- nGramFreq[["1"]][-2,] # remove <unk> freq
+  tList <- list("the"=1,"to"=2,"and"=3,"a"=4,"of"=5,"i"=6,"in"=7)
   
   ptm <- proc.time()
   
@@ -79,12 +79,12 @@ checkSent <- function (sent,freqValue) {
           keypressTmp <- 0
           previousWords <- if (i==1) "eol#" else ngram[max(i-3,1):(i-1)]
           currentWord <- character(0)
-          suggestedWords <- getNextWords (nGramFreq, previousWords, currentWord) 
+          suggestedWords <- getNextWords (nGramFreq, previousWords, currentWord, tList) 
           
           while (!(tolower(ngram[i]) %in% suggestedWords) && keypressTmp<nchar(ngram[i])) {
             keypressTmp <- keypressTmp + 1
             currentWord <- substr(ngram[i],1,keypressTmp)
-            suggestedWords <- getNextWords (nGramFreq, previousWords, currentWord) 
+            suggestedWords <- getNextWords (nGramFreq, previousWords, currentWord, tList) 
           }
           
           kpi$keypressCount <- kpi$keypressCount + keypressTmp
@@ -118,6 +118,4 @@ tokenize <- function (text, delimiter) {
 
 # run test
 sent <- cleanChunk(chunk[1:100])
-checkSent(sent,"10")
-
-tail(nGramFreq[["1"]])
+checkSent(sent,"10.fast")

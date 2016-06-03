@@ -1,8 +1,8 @@
 name: smartKeyboard
 account: splat
 server: shinyapps.io
-bundleId: 468820
+bundleId: 470436
 url: https://splat.shinyapps.io/smartKeyboard/
-when: 1464815406.02874
+when: 1464952338.14451
 asMultiple: FALSE
 asStatic: FALSE

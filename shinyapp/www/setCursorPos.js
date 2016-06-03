@@ -3,6 +3,10 @@ $(document).ready(function() {
 
   $("#inputText").focus();
 	
+	$.getJSON("./en_US.10.freq.10.fast.json", function(json) {
+    console.log("json"); // this will show the info it in firebug console
+	});	
+	
 	Shiny.addCustomMessageHandler("setCursorPos", function(list) {
 		textareaID = '#' + list.textareaID;
 		el = $(textareaID);
