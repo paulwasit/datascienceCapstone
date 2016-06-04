@@ -8,14 +8,17 @@ header$children[[2]]$children <- tags$span("auto", tags$b("Keyboard"))
 body <- dashboardBody(
   
   useShinyjs(),
-  extendShinyjs(script = "./www/getCursorPos.js"),
+  #extendShinyjs(script = "./www/getCursorPos.js"),
   
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "custom.css"),
-    tags$script(src = "keypressTextarea.js"),
-    tags$script(src = "getCursorPos.js"),
-    tags$script(src = "focusTextarea.js"),
+    #tags$script(src = "keypressTextarea.js"),
+    #tags$script(src = "getCursorPos.js"),
+    #tags$script(src = "focusTextarea.js"),
+    tags$script(src = "getNgram.js"),
+    tags$script(src = "getWords.js"),
     tags$script(src = "setCursorPos.js")
+    
   ),
 
   customColumn(customClass="col-md-6 col-md-offset-3",

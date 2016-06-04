@@ -1,4 +1,5 @@
 
+/*
 shinyjs.getCursorPos = function(textareaID) {
 	
 	textareaID = '#' + textareaID;
@@ -17,3 +18,4 @@ shinyjs.getCursorPos = function(textareaID) {
 	return cursorPos;
 	
 }
+*/

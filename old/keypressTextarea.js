@@ -1,4 +1,5 @@
 
+/*
 $(document).on("keyup input", ".reactiveTextarea", function(evt) {
 	
 	var el = $(evt.target)[0];
@@ -7,3 +8,4 @@ $(document).on("keyup input", ".reactiveTextarea", function(evt) {
   $(el).trigger("change"); // triggers update
 	
 });
+*/

@@ -12,8 +12,8 @@ options(shiny.port = 8000) # specify local port
 
 # load DB
 nGramFreq <- readRDS("./data/en_US.10.freq.10.fast.Rds")
-tList <- list("the"=1,"to"=2,"and"=3,"a"=4,"of"=5,"i"=6,"in"=7)
-nGramFreq[["1"]] <- nGramFreq[["1"]][-2,] # remove <unk> freq
+#tList <- list("the"=1,"to"=2,"and"=3,"a"=4,"of"=5,"i"=6,"in"=7)
+#nGramFreq[["1"]] <- nGramFreq[["1"]][-2,] # remove <unk> freq
 
 
 # -------------------- APP FUNCTiONS -------------------- #
@@ -40,6 +40,8 @@ updateTextArea <- function (i,session,input,ngram,ntext) {
     newValue <- paste(newValue,ntext$nextText)
   }
   
+  print("ok")
+  
   # update text & cursor pos
   session$sendCustomMessage(
     type = "setCursorPos", 
@@ -65,7 +67,7 @@ textareaInput <- function(id, label=NULL, value="", placeholder="start typing",
   
   tags$div(
     class="form-group shiny-input-container",
-    tags$textarea(id=id,class=class,rows=rows,cols=cols,placeholder=placeholder,value))
+    tags$textarea(id=id,class=class,rows=rows,cols=cols,placeholder=placeholder,value,autocomplete="off"))
   
 }
 

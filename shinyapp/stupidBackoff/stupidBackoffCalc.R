@@ -10,6 +10,8 @@ getNextWords <- function (nGramFreq, previousWords, currentWord, tList) {
                                ngram=numeric(), 
                                stringsAsFactors=FALSE) 
   
+  print(previousWords)
+  
   len <- length(previousWords)
   lenCW <- nchar(currentWord)
   

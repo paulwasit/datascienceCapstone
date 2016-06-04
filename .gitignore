@@ -14,4 +14,4 @@ Thumbs.db
 rawData/
 data/
 nGramFreq/
-jsTest/
+node_modules/
