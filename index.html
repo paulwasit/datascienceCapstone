@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart Keyboard</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Smart Keyboard">
+  <meta name="author" content="Sebastien Plat">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Smart Keyboard</h1>
+    <h2>Data Science Capstone Project</h2>
+    <p>Sebastien Plat<br/></p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>Introduction</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The goal of this project it to create a <strong>smart keyboard</strong> similar to switfkey. </p>
+
+<p>It should be:</p>
+
+<ul>
+<li><strong>fast</strong>: the suggested words should appear as quickly as the user types</li>
+<li><strong>accurate</strong>: the user should only have to type a few letters per word - if at all</li>
+<li><strong>mobile-first</strong>: the app should work flawlessly in all screen sizes</li>
+</ul>
+
+<p>I use a predictive model based on <strong>n-gram frequencies</strong> &amp; <strong>stupid backoff</strong>, as explained in the next slides. </p>
+
+<p>The n-gram database is built from a <strong>10 millions words corpus</strong> coming from Twitter, blogs and news websites. </p>
+
+<p>N-grams that occur <strong>less than 10 times</strong> in the corpus <strong>are discarded</strong>. This considerably reduces the size of the database while ensuring optimum results.</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>n-gram model</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The n-gram model is explained nicely in this swiftkey <a href="https://blog.swiftkey.com/neural-networks-a-meaningful-leap-for-mobile-typing/">blog post</a>: </p>
+
+<p><img src="assets/img/ngram.png" title="" alt="" style="display: block; margin: auto; width: 600px;" /></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Stupid backoff</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>We want to calculate the ranking of as many words as possible, to ensure the <strong>best possible prediction</strong>. </p>
+
+<p>The <a href="http://www.aclweb.org/anthology/D07-1090.pdf">stupid backoff</a> algorithm is used for sequences of words <strong>not in the database</strong> (&quot;at the mall&quot; in our example below): it looks at the word&#39;s ranking in a smaller sequence of words (&quot;the mall&quot;) and applies a penalty to it to reflect its lower likelihood. </p>
+
+<p>In our example, &quot;mall&quot; is the most common word after &quot;the&quot;, so it is ranked 1st. The penalty is applied and the final ranking of &quot;mall&quot; is 4th.</p>
+
+<p><img src="assets/img/stupidbackoff2.png" title="" alt="" style="display: block; margin: auto; width: 800px;" /></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>App links &amp; comments</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The user is encouraged to <strong>try the app on their mobile device</strong>, in order to compare the suggested words with the phone&#39;s suggestions. It should work in all modern browsers (tested on Chrome/Firefox/Safari/Edge/IE11).</p>
+
+<p>The shinyapp: <a href="https://splat.shinyapps.io/smartKeyboard">https://splat.shinyapps.io/smartKeyboard</a>. </p>
+
+<p>The sharp user will notice a significant delay between their input &amp; the display of suggestions. It is due to the latency between the server &amp; the browser. </p>
+
+<p>Another, faster version is available here: <a href="https://enigmatic-coast-42463.herokuapp.com">https://enigmatic-coast-42463.herokuapp.com</a>. </p>
+
+<p>It takes a bit longer to load, but it is <strong>much faster</strong> as all calculations are done client-side in javascript.</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='Introduction'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='n-gram model'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Stupid backoff'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='App links &amp; comments'>
+         4
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>

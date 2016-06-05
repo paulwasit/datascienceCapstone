@@ -1,0 +1,246 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+</head>
+<body>
+<h3 id="introduction">Introduction</h3>
+<p>This project aims to create a program that makes it easier for people to type on their mobile devices, by suggesting three options for what the next word might be. It should approximate the smart keyboard made by SwiftKey, our corporate partner in this capstone.</p>
+<p>It will be based on predictive models, built from large amounts of data collected on the internet (the corpus is called <a href="http://www.corpora.heliohost.org/">HC Corpora</a>):</p>
+<ul>
+<li>newspapers and magazines</li>
+<li>personal and professional blogs</li>
+<li>Twitter updates</li>
+</ul>
+<p>When building our models, we will focus on:</p>
+<ul>
+<li><strong>speed</strong>: predictions should not take more than one second to appear</li>
+<li><strong>accuracy</strong>: predictions should be relevant to the user</li>
+<li><strong>correctness</strong>: predictions should be actual english words</li>
+</ul>
+<p>The last point is not to be neglected, especially for data coming from Twitter (use of hashtags, spelling errors, etc.).</p>
+<h3 id="training-size">Training size</h3>
+<p>The <a href="https://en.wikipedia.org/wiki/Brown_Corpus">Brown Corpus</a>, which has been created in the 1960's and which for many years has been among the most-cited resources in the field, contains only one million words. Contemporary corpora tend to be much larger, on the order of 100 million words.</p>
+<p>Our corpus totals more than <strong>60 million words</strong>. Working with such a large amount of data can be computationally intensive, so we will start by keeping only a <strong>15% sample</strong>, or approx. <strong>10 million words</strong>. This will allow us to familiarize with the data, start building our model, and do our first optimizations. We will consider enlarging our training set afterwards if nessessary.</p>
+<p>Our three sources vary in size. As we want each to have the same weight in our training set, we will keep:</p>
+<ul>
+<li>100% of the newspapers and magazines data</li>
+<li>10% of the personal and professional blogs data</li>
+<li>10% of Twitter updates</li>
+</ul>
+<p>This will give us roughly <strong>3 million words per source</strong>.</p>
+<p>In order to limit the bias during sampling, we will:</p>
+<ol style="list-style-type: decimal">
+<li>fully randomize the lines of each sampled text</li>
+<li>give each line 10% chance to be selected</li>
+<li>save our sample in a new file</li>
+</ol>
+<p><em>Note: we will set seeds for each step, which will guarantee the reproducibility of the sampling.</em></p>
+<h3 id="tokenization">Tokenization</h3>
+<p>Our predictive models will be based on N-gram probabilities, so our first step is to tokenize our samples and <strong>build frequency tables for uni- to 4-grams</strong>. We use the RWeka library, as it is up to 100 times faster than others. It splits words like <code>don't</code> in two tokens <code>don</code>and <code>t</code>by default, so we use a custom parsing method where we remove <code>'</code> from the delimiters and add a few more.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Zoom on the technical details: custom delimiters</span>
+delimiters=<span class="st">&#39; /</span><span class="ch">\\\r\n\t</span><span class="st">=&lt;&gt;~*&amp;_.,;:&quot;()?!&#39;</span></code></pre></div>
+<p><br/> The exact steps are the following:</p>
+<ol style="list-style-type: decimal">
+<li>extract all unigrams (ie. single words) from our sample using RWeka</li>
+<li>clean all the wrongly encoded UTF-8 characters, using this <a href="http://www.i18nqa.com/debug/utf8-debug.html">table</a> and the <code>gsub</code>function</li>
+<li>replace all unknown words by the token &quot;&lt;UNK&gt;&quot;, using the dictionary available in the qdap library</li>
+<li>save our cleaned-up sample in a new file</li>
+<li>build frequency tables for uni- to 4-grams from our cleaned-up sample, using RWeka again</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Zoom on the technical details: we will use the qdap dictionary (100k+ words)</span>
+qdapDictionaries::GradyAugmented
+<span class="co"># note: spliting the dictionary in 26 sub-lists (one per letter) and </span>
+<span class="co"># searching the relevant sub-list for each word instead of the whole dictionary</span>
+<span class="co"># makes the computation 100x faster (which is handy as it takes 10 minutes when optimized)</span></code></pre></div>
+<h3 id="final-training-set">Final training set</h3>
+<p>Building our data set takes approx. one hour. The longest computation is by far the filtering of non existing words, as the dictionary is 100k-words long and each sample is roughly 3m-words long (this task alone takes approx. 10 minutes per sample).</p>
+<p>Here is our training set after the cleanup:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">N-gram</th>
+<th align="right">Unique Before</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">unigrams</td>
+<td align="right">52 031</td>
+</tr>
+<tr class="even">
+<td align="left">bigrams</td>
+<td align="right">2 001 316</td>
+</tr>
+<tr class="odd">
+<td align="left">trigrams</td>
+<td align="right">4 488 650</td>
+</tr>
+<tr class="even">
+<td align="left">4-grams</td>
+<td align="right">5 598 643</td>
+</tr>
+</tbody>
+</table>
+<p>Here is the list of top10 N-grams for the cleaned-up training set (excl. &lt;UNK&gt;):</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Top10</th>
+<th align="left">1-gram</th>
+<th align="left">2-gram</th>
+<th align="left">3-gram</th>
+<th align="left">4-gram</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">1</td>
+<td align="left">the</td>
+<td align="left">of the</td>
+<td align="left">one of the</td>
+<td align="left">the end of the</td>
+</tr>
+<tr class="even">
+<td align="center">2</td>
+<td align="left">to</td>
+<td align="left">in the</td>
+<td align="left">a lot of</td>
+<td align="left">at the end of</td>
+</tr>
+<tr class="odd">
+<td align="center">3</td>
+<td align="left">and</td>
+<td align="left">to the</td>
+<td align="left">thanks for the</td>
+<td align="left">thanks for the follow</td>
+</tr>
+<tr class="even">
+<td align="center">4</td>
+<td align="left">a</td>
+<td align="left">for the</td>
+<td align="left">going to be</td>
+<td align="left">the rest of the</td>
+</tr>
+<tr class="odd">
+<td align="center">5</td>
+<td align="left">of</td>
+<td align="left">on the</td>
+<td align="left">to be a</td>
+<td align="left">for the first time</td>
+</tr>
+<tr class="even">
+<td align="center">6</td>
+<td align="left">i</td>
+<td align="left">to be</td>
+<td align="left">i want to</td>
+<td align="left">at the same time</td>
+</tr>
+<tr class="odd">
+<td align="center">7</td>
+<td align="left">in</td>
+<td align="left">at the</td>
+<td align="left">the end of</td>
+<td align="left">is going to be</td>
+</tr>
+<tr class="even">
+<td align="center">8</td>
+<td align="left">for</td>
+<td align="left">and the</td>
+<td align="left">out of the</td>
+<td align="left">is one of the</td>
+</tr>
+<tr class="odd">
+<td align="center">9</td>
+<td align="left">is</td>
+<td align="left">in a</td>
+<td align="left">it was a</td>
+<td align="left">one of the most</td>
+</tr>
+<tr class="even">
+<td align="center">10</td>
+<td align="left">that</td>
+<td align="left">with the</td>
+<td align="left">as well as</td>
+<td align="left">in the middle of</td>
+</tr>
+</tbody>
+</table>
+<p>As an example of 3-gram, and in anticipation to the next steps, here is the 3 most frequent words occuring in the training set after &quot;on my...&quot;:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Word</th>
+<th align="right">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">...way</td>
+<td align="right">227</td>
+</tr>
+<tr class="even">
+<td align="left">...mind</td>
+<td align="right">92</td>
+</tr>
+<tr class="odd">
+<td align="left">...own</td>
+<td align="right">91</td>
+</tr>
+</tbody>
+</table>
+<h3 id="next-steps">Next steps</h3>
+<p>Now that we have built our training set, the next steps will be to build our predictive model. Our next steps will be to:</p>
+<ul>
+<li>filter bad words from our suggestions, as soon as we find the dictionary to do so</li>
+<li>limit our calculations to small N-grams (see <a href="https://en.wikipedia.org/wiki/Markov_chain">Markov Chains</a>)</li>
+<li>see how pruning unfrequent N-grams can lead to faster computation without losing accuracy</li>
+<li>implement smoothing to handle unkwnown words typed by the users</li>
+<li>having our &quot;&lt;UNK&gt;&quot; tokens will probably help</li>
+<li><a href="http://www.aclweb.org/anthology/D07-1090.pdf">stupid backoff</a> should work well, as our training set is quite large</li>
+<li>if not, we will consider more advanced algorithms like <a href="https://en.wikipedia.org/wiki/Kneser%E2%80%93Ney_smoothing">Kneser-Ney</a></li>
+<li>lastly, we will consider adding large corpora to our training set, like the <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google N-gram</a></li>
+</ul>
+</body>
+</html>
